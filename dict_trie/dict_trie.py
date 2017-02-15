@@ -28,10 +28,10 @@ class Trie(object):
         """
         node = self.root
 
-        for character in word:
-            if character not in node:
+        for char in word:
+            if char not in node:
                 return {}
-            node = node[character]
+            node = node[char]
 
         return node
 
@@ -41,13 +41,15 @@ class Trie(object):
     def add(self, word):
         """
         Add a word to the trie.
+
+        :arg str word: A word.
         """
         node = self.root
 
-        for character in word:
-            if character not in node:
-                node[character] = {}
-            node = node[character]
+        for char in word:
+            if char not in node:
+                node[char] = {}
+            node = node[char]
 
         node[''] = {}
 

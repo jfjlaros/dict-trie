@@ -11,7 +11,7 @@ class TestTrie(object):
     def setup(self):
         self._trie = Trie(['abc', 'abd', 'test', 'te'])
 
-    def test_full_trie(self):
+    def test_root(self):
         assert self._trie.root == {
             'a': {
                 'b': {
@@ -21,28 +21,34 @@ class TestTrie(object):
                 '': {},
                 's': {'t': {'': {}}}}}}
 
-    def test_prefix_not_in_trie(self):
-        assert 'ab' not in self._trie
-
-    def test_word_in_trie(self):
+    def test_word_present(self):
         assert 'abc' in self._trie
 
-    def test_suffix_not_in_trie(self):
+    def test_word_absent(self):
+        assert 'abx' not in self._trie
+
+    def test_empty_string_present(self):
+        assert '' in Trie([''])
+
+    def test_empty_string_absent(self):
+        assert '' not in self._trie
+
+    def test_prefix_absent_as_word(self):
+        assert 'ab' not in self._trie
+
+    def test_too_long_absent(self):
         assert 'abcd' not in self._trie
 
-    def test_word_not_in_trie(self):
-        assert 'abe' not in self._trie
-
-    def test_has_prefix(self):
+    def test_prefix_present(self):
         assert self._trie.has_prefix('ab')
+
+    def test_prefix_absent(self):
+        assert not self._trie.has_prefix('ac')
 
     def test_word_is_prefix(self):
         assert self._trie.has_prefix('abc')
 
-    def test_has_prefix_not(self):
-        assert not self._trie.has_prefix('ac')
-
-    def test_has_prefix_not_long(self):
+    def test_too_long_prefix_absent(self):
         assert not self._trie.has_prefix('abcd')
 
     def test_prefix_order(self):
