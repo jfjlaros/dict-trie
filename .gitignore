@@ -1,0 +1,6 @@
+*.pyc
+.cache/
+.tox/
+build/
+dist/
+dict_trie.egg-info/
