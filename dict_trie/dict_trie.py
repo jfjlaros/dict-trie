@@ -36,9 +36,7 @@ class Trie(object):
         return node
 
     def __contains__(self, word):
-        if '' in self._find(word):
-            return True
-        return False
+        return '' in self._find(word)
 
     def add(self, word):
         """
@@ -54,6 +52,4 @@ class Trie(object):
         node[''] = {}
 
     def has_prefix(self, word):
-        if self._find(word) != {}:
-            return True
-        return False
+        return self._find(word) != {}
