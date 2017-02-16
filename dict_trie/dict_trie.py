@@ -29,6 +29,10 @@ def _hamming(path, node, word, distance):
     return ''
 
 
+def _edit(path, node, word, distance):
+    pass
+
+
 class Trie(object):
     def __init__(self, words):
         """
@@ -89,3 +93,25 @@ class Trie(object):
 
     def hamming(self, word, distance):
         return _hamming('', self.root, word, distance)
+
+    def best_hamming(self, word, distance):
+        """
+        Find the best match with {word} in the trie.
+
+        :arg str word: Query word.
+        :arg int distance: Amount of errors we can still make.
+
+        :returns str: Best match with {word}.
+        """
+        if word in self:
+            return word
+
+        for i in range(1, distance + 1):
+            result = self.hamming(word, i)
+            if result:
+                return result
+
+        return ''
+
+    def edit(self, word, distance):
+        return _edit('', self.root, word, distance)

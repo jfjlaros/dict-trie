@@ -81,6 +81,9 @@ class TestTrie(object):
     def test_hamming_1_match_3(self):
         assert self._trie.hamming('abx', 1) == 'abc'
 
+    def test_hamming_1_match_4(self):
+        assert self._trie.hamming('abd', 1) == 'abc'
+
     def test_hamming_1_no_prefix(self):
         assert self._trie.hamming('ab', 1) == ''
 
@@ -98,3 +101,6 @@ class TestTrie(object):
 
     def test_hamming_2_match(self):
         assert self._trie.hamming('txxt', 2) == 'test'
+
+    def test_best_hamming_match(self):
+        assert self._trie.best_hamming('abd', 1) == 'abd'
