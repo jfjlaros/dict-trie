@@ -10,7 +10,7 @@ Licensed under the MIT license, see the LICENSE file.
 from .dict_trie import Trie
 
 
-__version_info__ = ('0', '0', '1')
+__version_info__ = ('0', '0', '2')
 
 __version__ = '.'.join(__version_info__)
 __author__ = 'LUMC, Jeroen F.J. Laros'
