@@ -1,3 +1,29 @@
+def _hamming(path, node, word, distance):
+    """
+    :arg str path: Path taken so far to reach the current node.
+    :arg dict node: Current node.
+    :arg str word: Query word.
+    :arg int distance: Amount of errors we can still make.
+
+    :returns str:
+    """
+    if distance < 0:
+        return ''
+    if not word:
+        if '' in node:
+            return path
+        return ''
+
+    car, cdr = word[0], word[1:]
+    for char in node:
+        result = _hamming(
+            path + char, node[char], cdr, distance - int(char != car))
+        if result:
+            return result
+
+    return ''
+
+
 class Trie(object):
     def __init__(self, words):
         """
@@ -55,3 +81,6 @@ class Trie(object):
 
     def has_prefix(self, word):
         return self._find(word) != {}
+
+    def hamming(self, word, distance):
+        return _hamming('', self.root, word, distance)
