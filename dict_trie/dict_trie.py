@@ -1,11 +1,16 @@
 def _hamming(path, node, word, distance):
     """
+    Find the first path in the trie that is within a certain hamming distance
+    of {word}. Note that this does not necessarily the one with the smallest
+    distance.
+
     :arg str path: Path taken so far to reach the current node.
     :arg dict node: Current node.
     :arg str word: Query word.
     :arg int distance: Amount of errors we can still make.
 
-    :returns str:
+    :returns str: A word in the trie that has Hamming distance of at most
+        {distance} to {word}.
     """
     if distance < 0:
         return ''
@@ -50,7 +55,7 @@ class Trie(object):
 
         :arg str word: A word.
 
-        :returns dict: The node if found, None otherwise.
+        :returns dict: The node if found, {} otherwise.
         """
         node = self.root
 
