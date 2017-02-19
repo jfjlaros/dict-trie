@@ -104,3 +104,18 @@ class TestTrie(object):
 
     def test_best_hamming_match(self):
         assert self._trie.best_hamming('abd', 1) == 'abd'
+
+    def test_levenshtein_0_match_1(self):
+        assert self._trie.levenshtein('abc', 0) == 'abc'
+
+    def test_levenshtein_0_match_2(self):
+        assert self._trie.levenshtein('te', 0) == 'te'
+
+    def test_levenshtein_1_subst(self):
+        assert self._trie.levenshtein('axc', 1) == 'abc'
+
+    def test_levenshtein_1_del(self):
+        assert self._trie.levenshtein('ac', 1) == 'abc'
+
+    def test_levenshtein_1_ins(self):
+        assert self._trie.levenshtein('abbc', 1) == 'abc'

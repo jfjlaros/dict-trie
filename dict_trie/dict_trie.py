@@ -15,9 +15,7 @@ def _hamming(path, node, word, distance):
     if distance < 0:
         return ''
     if not word:
-        if '' in node:
-            return path
-        return ''
+        return path if '' in node else ''
 
     car, cdr = word[0], word[1:]
     for char in node:
@@ -29,8 +27,31 @@ def _hamming(path, node, word, distance):
     return ''
 
 
-def _edit(path, node, word, distance):
-    pass
+def _levenshtein(path, node, word, distance):
+    """
+    """
+    if distance < 0:
+        return ''
+    if not word:
+        return path if '' in node else ''
+
+    car, cdr = word[0], word[1:]
+
+    # Deletion.
+    result = _levenshtein(path, node, cdr, distance - 1)
+    if result:
+        return result
+
+    for char in node:
+        # Substitution and insertion.
+        result = (
+            _levenshtein(
+                path + char, node[char], cdr, distance - int(char != car)) or
+            _levenshtein(path + char, node[char], word, distance - 1))
+        if result:
+            return result
+
+    return ''
 
 
 class Trie(object):
@@ -113,5 +134,5 @@ class Trie(object):
 
         return ''
 
-    def edit(self, word, distance):
-        return _edit('', self.root, word, distance)
+    def levenshtein(self, word, distance):
+        return _levenshtein('', self.root, word, distance)
