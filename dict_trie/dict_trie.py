@@ -136,3 +136,22 @@ class Trie(object):
 
     def levenshtein(self, word, distance):
         return _levenshtein('', self.root, word, distance)
+
+    def best_levenshtein(self, word, distance):
+        """
+        Find the best match with {word} in the trie.
+
+        :arg str word: Query word.
+        :arg int distance: Amount of errors we can still make.
+
+        :returns str: Best match with {word}.
+        """
+        if word in self:
+            return word
+
+        for i in range(1, distance + 1):
+            result = self.levenshtein(word, i)
+            if result:
+                return result
+
+        return ''
