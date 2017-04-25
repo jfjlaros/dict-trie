@@ -1,5 +1,4 @@
-"""
-Tests for the trie library.
+"""Tests for the trie library.
 """
 #from __future__ import (
 #    absolute_import, division, print_function, unicode_literals)

@@ -1,5 +1,4 @@
-"""
-dict-trie: Basic implementation of a trie.
+"""dict-trie: Basic implementation of a trie.
 
 
 Copyright (c) 2017 Leiden University Medical Center <humgen@lumc.nl>

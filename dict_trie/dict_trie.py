@@ -1,8 +1,7 @@
 def _hamming(path, node, word, distance):
-    """
-    Find the first path in the trie that is within a certain hamming distance
-    of {word}. Note that this does not necessarily the one with the smallest
-    distance.
+    """Find the first path in the trie that is within a certain hamming
+    distance of {word}. Note that this does not necessarily the one with the
+    smallest distance.
 
     :arg str path: Path taken so far to reach the current node.
     :arg dict node: Current node.
@@ -56,8 +55,7 @@ def _levenshtein(path, node, word, distance):
 
 class Trie(object):
     def __init__(self, words):
-        """
-        Initialise the class.
+        """Initialise the class.
 
         :arg list words: List of words.
         """
@@ -66,8 +64,7 @@ class Trie(object):
         self._build(words)
 
     def _build(self, words):
-        """
-        Build the trie.
+        """Build the trie.
 
         :arg list words: List of words.
         """
@@ -75,8 +72,7 @@ class Trie(object):
             self.add(word)
 
     def _find(self, word):
-        """
-        Find the node after following the path in the trie given by {word}.
+        """Find the node after following the path in the trie given by {word}.
 
         :arg str word: A word.
 
@@ -95,8 +91,7 @@ class Trie(object):
         return '' in self._find(word)
 
     def add(self, word):
-        """
-        Add a word to the trie.
+        """Add a word to the trie.
 
         :arg str word: A word.
         """
@@ -116,8 +111,7 @@ class Trie(object):
         return _hamming('', self.root, word, distance)
 
     def best_hamming(self, word, distance):
-        """
-        Find the best match with {word} in the trie.
+        """Find the best match with {word} in the trie.
 
         :arg str word: Query word.
         :arg int distance: Amount of errors we can still make.
@@ -138,8 +132,7 @@ class Trie(object):
         return _levenshtein('', self.root, word, distance)
 
     def best_levenshtein(self, word, distance):
-        """
-        Find the best match with {word} in the trie.
+        """Find the best match with {word} in the trie.
 
         :arg str word: Query word.
         :arg int distance: Amount of errors we can still make.
