@@ -1,3 +1,38 @@
+def _fill(node, alphabet, length):
+    """Make a full trie using the characters in {alphabet}.
+
+    :arg dict node: Current node.
+    :arg tuple alphabet: Used alphabet.
+    :arg int length: Length of the words to be generated.
+
+    :returns iter: Trie containing all words of length {length} over alphabet
+        {alphabet}.
+    """
+    if not length:
+        node[''] = {}
+        return
+
+    for car in alphabet:
+        node[car] = {}
+        _fill(node[car], alphabet, length - 1)
+
+
+def _to_list(path, node):
+    """Convert a trie into a list.
+
+    :arg str path: Path taken so far to reach the current node.
+    :arg dict node: Current node.
+
+    :returns iter: All words in the trie.
+    """
+    if '' in node:
+        yield path
+
+    for car in node:
+        for result in _to_list(path + car, node[car]):
+            yield result
+
+
 def _hamming(path, node, word, distance):
     """Find all paths in the trie that are within a certain hamming distance of
     {word}.
@@ -60,14 +95,15 @@ def _levenshtein(path, node, word, distance):
 
 
 class Trie(object):
-    def __init__(self, words):
+    def __init__(self, words=None):
         """Initialise the class.
 
         :arg list words: List of words.
         """
         self.root = {}
 
-        self._build(words)
+        if words:
+            self._build(words)
 
     def _build(self, words):
         """Build the trie.
@@ -112,6 +148,12 @@ class Trie(object):
 
     def has_prefix(self, word):
         return self._find(word) != {}
+
+    def fill(self, alphabet, length):
+        _fill(self.root, alphabet, length)
+
+    def to_list(self):
+        return _to_list('', self.root)
 
     def all_hamming(self, word, distance):
         return _hamming('', self.root, word, distance)
