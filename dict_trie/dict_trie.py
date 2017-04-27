@@ -1,20 +1,35 @@
-def _fill(node, alphabet, length):
-    """Make a full trie using the characters in {alphabet}.
+def _add(root, word):
+    """Add a word to the trie.
 
-    :arg dict node: Current node.
-    :arg tuple alphabet: Used alphabet.
-    :arg int length: Length of the words to be generated.
-
-    :returns iter: Trie containing all words of length {length} over alphabet
-        {alphabet}.
+    :arg dict root: Root of the trie.
+    :arg str word: A word.
     """
-    if not length:
-        node[''] = {}
-        return
+    node = root
 
-    for car in alphabet:
-        node[car] = {}
-        _fill(node[car], alphabet, length - 1)
+    for char in word:
+        if char not in node:
+            node[char] = {}
+        node = node[char]
+
+    node[''] = {}
+
+
+def _find(root, word):
+    """Find the node after following the path in the trie given by {word}.
+
+    :arg dict root: Root of the trie.
+    :arg str word: A word.
+
+    :returns dict: The node if found, {} otherwise.
+    """
+    node = root
+
+    for char in word:
+        if char not in node:
+            return {}
+        node = node[char]
+
+    return node
 
 
 def _remove(node, word):
@@ -43,7 +58,7 @@ def _remove(node, word):
     return result
 
 
-def _to_list(path, node):
+def _iterate(path, node):
     """Convert a trie into a list.
 
     :arg str path: Path taken so far to reach the current node.
@@ -54,9 +69,28 @@ def _to_list(path, node):
     if '' in node:
         yield path
 
-    for car in node:
-        for result in _to_list(path + car, node[car]):
+    for char in node:
+        for result in _iterate(path + char, node[char]):
             yield result
+
+
+def _fill(node, alphabet, length):
+    """Make a full trie using the characters in {alphabet}.
+
+    :arg dict node: Current node.
+    :arg tuple alphabet: Used alphabet.
+    :arg int length: Length of the words to be generated.
+
+    :returns iter: Trie containing all words of length {length} over alphabet
+        {alphabet}.
+    """
+    if not length:
+        node[''] = {}
+        return
+
+    for char in alphabet:
+        node[char] = {}
+        _fill(node[char], alphabet, length - 1)
 
 
 def _hamming(path, node, word, distance):
@@ -129,60 +163,26 @@ class Trie(object):
         self.root = {}
 
         if words:
-            self._build(words)
-
-    def _build(self, words):
-        """Build the trie.
-
-        :arg list words: List of words.
-        """
-        for word in words:
-            self.add(word)
-
-    def _find(self, word):
-        """Find the node after following the path in the trie given by {word}.
-
-        :arg str word: A word.
-
-        :returns dict: The node if found, {} otherwise.
-        """
-        node = self.root
-
-        for char in word:
-            if char not in node:
-                return {}
-            node = node[char]
-
-        return node
+            for word in words:
+                self.add(word)
 
     def __contains__(self, word):
-        return '' in self._find(word)
+        return '' in _find(self.root, word)
+
+    def __iter__(self):
+        return _iterate('', self.root)
 
     def add(self, word):
-        """Add a word to the trie.
-
-        :arg str word: A word.
-        """
-        node = self.root
-
-        for char in word:
-            if char not in node:
-                node[char] = {}
-            node = node[char]
-
-        node[''] = {}
+        _add(self.root, word)
 
     def remove(self, word):
         return _remove(self.root, word)
 
     def has_prefix(self, word):
-        return self._find(word) != {}
+        return _find(self.root, word) != {}
 
     def fill(self, alphabet, length):
         _fill(self.root, alphabet, length)
-
-    def to_list(self):
-        return _to_list('', self.root)
 
     def all_hamming(self, word, distance):
         return _hamming('', self.root, word, distance)
@@ -201,7 +201,7 @@ class Trie(object):
 
         :returns str: Best match with {word}.
         """
-        if word in self:
+        if _find(self.root, word):
             return word
 
         for i in range(1, distance + 1):
@@ -228,7 +228,7 @@ class Trie(object):
 
         :returns str: Best match with {word}.
         """
-        if word in self:
+        if _find(self.root, word):
             return word
 
         for i in range(1, distance + 1):
