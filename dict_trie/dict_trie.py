@@ -1,56 +1,53 @@
 def _hamming(path, node, word, distance):
-    """Find the first path in the trie that is within a certain hamming
-    distance of {word}. Note that this does not necessarily the one with the
-    smallest distance.
+    """Find all paths in the trie that are within a certain hamming distance of
+    {word}.
 
     :arg str path: Path taken so far to reach the current node.
     :arg dict node: Current node.
     :arg str word: Query word.
     :arg int distance: Amount of errors we can still make.
 
-    :returns str: A word in the trie that has Hamming distance of at most
+    :returns iter: All word in the trie that have Hamming distance of at most
         {distance} to {word}.
     """
     if distance < 0:
-        return ''
+        return
     if not word:
-        return path if '' in node else ''
+        if '' in node:
+            yield path
+        return
 
     car, cdr = word[0], word[1:]
     for char in node:
-        result = _hamming(
-            path + char, node[char], cdr, distance - int(char != car))
-        if result:
-            return result
-
-    return ''
+        for result in _hamming(
+            path + char, node[char], cdr, distance - int(char != car)):
+            yield result
 
 
 def _levenshtein(path, node, word, distance):
     """
     """
     if distance < 0:
-        return ''
+        return
     if not word:
-        return path if '' in node else ''
+        if '' in node:
+            yield path
+        return
 
     car, cdr = word[0], word[1:]
 
     # Deletion.
-    result = _levenshtein(path, node, cdr, distance - 1)
-    if result:
-        return result
+    for result in _levenshtein(path, node, cdr, distance - 1):
+        yield result
 
     for char in node:
         # Substitution and insertion.
-        result = (
-            _levenshtein(
-                path + char, node[char], cdr, distance - int(char != car)) or
-            _levenshtein(path + char, node[char], word, distance - 1))
-        if result:
-            return result
-
-    return ''
+        for result in _levenshtein(
+                path + char, node[char], cdr, distance - int(char != car)):
+            yield result
+        for result in _levenshtein(
+                path + char, node[char], word, distance - 1):
+            yield result
 
 
 class Trie(object):
@@ -107,8 +104,14 @@ class Trie(object):
     def has_prefix(self, word):
         return self._find(word) != {}
 
-    def hamming(self, word, distance):
+    def all_hamming(self, word, distance):
         return _hamming('', self.root, word, distance)
+
+    def hamming(self, word, distance):
+        try:
+            return self.all_hamming(word, distance).next()
+        except StopIteration:
+            return ''
 
     def best_hamming(self, word, distance):
         """Find the best match with {word} in the trie.
@@ -128,8 +131,14 @@ class Trie(object):
 
         return ''
 
-    def levenshtein(self, word, distance):
+    def all_levenshtein(self, word, distance):
         return _levenshtein('', self.root, word, distance)
+
+    def levenshtein(self, word, distance):
+        try:
+            return self.all_levenshtein(word, distance).next()
+        except StopIteration:
+            return ''
 
     def best_levenshtein(self, word, distance):
         """Find the best match with {word} in the trie.
