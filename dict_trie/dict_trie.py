@@ -55,7 +55,7 @@ def _hamming(path, node, word, distance):
     car, cdr = word[0], word[1:]
     for char in node:
         for result in _hamming(
-            path + char, node[char], cdr, distance - int(char != car)):
+                path + char, node[char], cdr, distance - int(char != car)):
             yield result
 
 
