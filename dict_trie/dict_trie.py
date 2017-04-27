@@ -17,6 +17,32 @@ def _fill(node, alphabet, length):
         _fill(node[car], alphabet, length - 1)
 
 
+def _remove(node, word):
+    """Remove a word from a trie.
+
+    :arg dict node: Current node.
+    :arg str word: Word to be removed.
+
+    :returns bool:
+    """
+    if not word:
+        if '' in node:
+            node.pop('')
+            return True
+        return False
+
+    car, cdr = word[0], word[1:]
+    if car not in node:
+        return False
+
+    result = _remove(node[car], cdr)
+    if result:
+        if not node[car]:
+            node.pop(car)
+
+    return result
+
+
 def _to_list(path, node):
     """Convert a trie into a list.
 
@@ -145,6 +171,9 @@ class Trie(object):
             node = node[char]
 
         node[''] = {}
+
+    def remove(self, word):
+        return _remove(self.root, word)
 
     def has_prefix(self, word):
         return self._find(word) != {}
