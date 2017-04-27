@@ -5,7 +5,7 @@ def _hamming(path, node, word, distance):
     :arg str path: Path taken so far to reach the current node.
     :arg dict node: Current node.
     :arg str word: Query word.
-    :arg int distance: Amount of errors we can still make.
+    :arg int distance: Amount of allowed errors.
 
     :returns iter: All word in the trie that have Hamming distance of at most
         {distance} to {word}.
@@ -25,7 +25,16 @@ def _hamming(path, node, word, distance):
 
 
 def _levenshtein(path, node, word, distance):
-    """
+    """Find all paths in the trie that are within a certain Levenshtein
+    distance of {word}.
+
+    :arg str path: Path taken so far to reach the current node.
+    :arg dict node: Current node.
+    :arg str word: Query word.
+    :arg int distance: Amount of allowed errors.
+
+    :returns iter: All word in the trie that have Hamming distance of at most
+        {distance} to {word}.
     """
     if distance < 0:
         return
@@ -117,7 +126,7 @@ class Trie(object):
         """Find the best match with {word} in the trie.
 
         :arg str word: Query word.
-        :arg int distance: Amount of errors we can still make.
+        :arg int distance: Maximum allowed distance.
 
         :returns str: Best match with {word}.
         """
@@ -144,7 +153,7 @@ class Trie(object):
         """Find the best match with {word} in the trie.
 
         :arg str word: Query word.
-        :arg int distance: Amount of errors we can still make.
+        :arg int distance: Maximum allowed distance.
 
         :returns str: Best match with {word}.
         """
