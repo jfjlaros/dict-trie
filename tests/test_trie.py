@@ -160,7 +160,7 @@ class TestTrie(object):
     def test_levenshtein_1_del(self):
         assert self._trie.levenshtein('ac', 1) == 'abc'
 
-    def test_levenshtein_1_prefex(self):
+    def test_levenshtein_1_prefix(self):
         assert self._trie.levenshtein('ab', 1) == 'abc'
 
     def test_levenshtein_1_ins(self):
