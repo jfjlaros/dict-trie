@@ -136,19 +136,21 @@ def _levenshtein(path, node, word, distance):
     if not word:
         if '' in node:
             yield path
-        return
-
-    car, cdr = word[0], word[1:]
+        car, cdr = '', ''
+    else:
+        car, cdr = word[0], word[1:]
 
     # Deletion.
     for result in _levenshtein(path, node, cdr, distance - 1):
         yield result
 
     for char in node:
-        # Substitution and insertion.
-        for result in _levenshtein(
-                path + char, node[char], cdr, distance - int(char != car)):
-            yield result
+        # Substitution.
+        if car:
+            for result in _levenshtein(
+                    path + char, node[char], cdr, distance - int(char != car)):
+                yield result
+        # Insertion.
         for result in _levenshtein(
                 path + char, node[char], word, distance - 1):
             yield result
