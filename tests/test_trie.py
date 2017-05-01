@@ -1,5 +1,4 @@
-"""
-Tests for the trie library.
+"""Tests for the trie library.
 """
 #from __future__ import (
 #    absolute_import, division, print_function, unicode_literals)
@@ -10,6 +9,9 @@ from dict_trie import Trie
 class TestTrie(object):
     def setup(self):
         self._trie = Trie(['abc', 'abd', 'test', 'te'])
+
+    def test_empty(self):
+        assert Trie().root == {}
 
     def test_root(self):
         assert self._trie.root == {
@@ -53,6 +55,44 @@ class TestTrie(object):
 
     def test_prefix_order(self):
         assert Trie(['test', 'te']).root == Trie(['te', 'test']).root
+
+    def test_add(self):
+        self._trie.add('abx')
+        assert 'abx' in self._trie
+
+    def test_remove_present(self):
+        assert self._trie.remove('test')
+        assert 'test' not in self._trie
+        assert 'te' in self._trie
+
+    def test_remove_prefix_present(self):
+        assert self._trie.remove('te')
+        assert 'te' not in self._trie
+        assert 'test' in self._trie
+
+    def test_remove_absent(self):
+        assert not self._trie.remove('xxxx')
+
+    def test_remove_prefix_absent(self):
+        assert not self._trie.remove('ab')
+
+    def test_iter(self):
+        assert list(self._trie) == ['abc', 'abd', 'te', 'test']
+
+    def test_fill(self):
+        trie = Trie()
+        trie.fill(('a', 'b'), 3)
+        assert list(trie) == [
+            'aaa', 'aab', 'aba', 'abb', 'baa', 'bab', 'bba', 'bbb']
+
+    def test_all_hamming_1_perfect(self):
+        assert list(self._trie.all_hamming('abc', 1)) == ['abc', 'abd']
+
+    def test_all_hamming_1_not_perfect(self):
+        assert list(self._trie.all_hamming('abx', 1)) == ['abc', 'abd']
+
+    def test_all_hamming_1_no_match(self):
+        assert not list(self._trie.all_hamming('xbx', 1))
 
     def test_hamming_0_no_prefix(self):
         assert self._trie.hamming('ab', 0) == ''
@@ -105,6 +145,9 @@ class TestTrie(object):
     def test_best_hamming_match(self):
         assert self._trie.best_hamming('abd', 1) == 'abd'
 
+    def test_all_levenshtein_1_not_perfect(self):
+        assert list(self._trie.all_levenshtein('tes', 1)) == ['te', 'test']
+
     def test_levenshtein_0_match_1(self):
         assert self._trie.levenshtein('abc', 0) == 'abc'
 
@@ -116,6 +159,9 @@ class TestTrie(object):
 
     def test_levenshtein_1_del(self):
         assert self._trie.levenshtein('ac', 1) == 'abc'
+
+    def test_levenshtein_1_prefix(self):
+        assert self._trie.levenshtein('ab', 1) == 'abc'
 
     def test_levenshtein_1_ins(self):
         assert self._trie.levenshtein('abbc', 1) == 'abc'
