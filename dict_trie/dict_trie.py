@@ -1,3 +1,6 @@
+import itertools
+
+
 def _add(root, word):
     """Add a word to the trie.
 
@@ -93,7 +96,7 @@ def _fill(node, alphabet, length):
         _fill(node[char], alphabet, length - 1)
 
 
-def _hamming(path, node, word, distance):
+def _hamming(path, node, word, distance, cigar):
     """Find all paths in the trie that are within a certain hamming distance of
     {word}.
 
@@ -109,17 +112,24 @@ def _hamming(path, node, word, distance):
         return
     if not word:
         if '' in node:
-            yield path
+            yield (path, distance, cigar)
         return
 
     car, cdr = word[0], word[1:]
     for char in node:
+        if char == car:
+            penalty = 0
+            operation = '='
+        else:
+            penalty = 1
+            operation = 'X'
         for result in _hamming(
-                path + char, node[char], cdr, distance - int(char != car)):
+                path + char, node[char], cdr, distance - penalty,
+                cigar + operation):
             yield result
 
 
-def _levenshtein(path, node, word, distance):
+def _levenshtein(path, node, word, distance, cigar):
     """Find all paths in the trie that are within a certain Levenshtein
     distance of {word}.
 
@@ -135,24 +145,31 @@ def _levenshtein(path, node, word, distance):
         return
     if not word:
         if '' in node:
-            yield path
+            yield (path, distance, cigar)
         car, cdr = '', ''
     else:
         car, cdr = word[0], word[1:]
 
     # Deletion.
-    for result in _levenshtein(path, node, cdr, distance - 1):
+    for result in _levenshtein(path, node, cdr, distance - 1, cigar + 'D'):
         yield result
 
     for char in node:
         # Substitution.
         if car:
+            if char == car:
+                penalty = 0
+                operation = '='
+            else:
+                penalty = 1
+                operation = 'X'
             for result in _levenshtein(
-                    path + char, node[char], cdr, distance - int(char != car)):
+                    path + char, node[char], cdr, distance - penalty,
+                    cigar + operation):
                 yield result
         # Insertion.
         for result in _levenshtein(
-                path + char, node[char], word, distance - 1):
+                path + char, node[char], word, distance - 1, cigar + 'I'):
             yield result
 
 
@@ -186,8 +203,14 @@ class Trie(object):
     def fill(self, alphabet, length):
         _fill(self.root, alphabet, length)
 
+    def all_hamming_(self, word, distance):
+        return itertools.imap(
+            lambda x: (x[0], distance - x[1], x[2]),
+            _hamming('', self.root, word, distance, ''))
+
     def all_hamming(self, word, distance):
-        return _hamming('', self.root, word, distance)
+        return itertools.imap(
+            lambda x: x[0], _hamming('', self.root, word, distance, ''))
 
     def hamming(self, word, distance):
         try:
@@ -213,8 +236,14 @@ class Trie(object):
 
         return ''
 
+    def all_levenshtein_(self, word, distance):
+        return itertools.imap(
+            lambda x: (x[0], distance - x[1], x[2]),
+            _levenshtein('', self.root, word, distance, ''))
+
     def all_levenshtein(self, word, distance):
-        return _levenshtein('', self.root, word, distance)
+        return itertools.imap(
+            lambda x: x[0], _levenshtein('', self.root, word, distance, ''))
 
     def levenshtein(self, word, distance):
         try:

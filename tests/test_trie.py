@@ -165,3 +165,12 @@ class TestTrie(object):
 
     def test_levenshtein_1_ins(self):
         assert self._trie.levenshtein('abbc', 1) == 'abc'
+
+    def test_all_hamming__2(self):
+        assert list(self._trie.all_hamming_('acb', 2)) == [
+            ('abc', 2, '=XX'), ('abd', 2, '=XX')]
+
+    def test_all_levenshtein__2(self):
+        assert list(self._trie.all_levenshtein_('acb', 2)) == [
+            ('abc', 2, '=D=I'), ('abd', 2, '=D=I'), ('abc', 2, '=XX'),
+            ('abd', 2, '=XX'), ('abc', 2, '=I=D')]
