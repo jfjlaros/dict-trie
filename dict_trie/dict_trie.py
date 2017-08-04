@@ -1,11 +1,12 @@
 import itertools
 
 
-def _add(root, word):
+def _add(root, word, count):
     """Add a word to the trie.
 
     :arg dict root: Root of the trie.
     :arg str word: A word.
+    :arg int count: Multiplicity of `word`.
     """
     node = root
 
@@ -14,7 +15,9 @@ def _add(root, word):
             node[char] = {}
         node = node[char]
 
-    node[''] = {}
+    if '' not in node:
+        node[''] = {'count': 0}
+    node['']['count'] += count
 
 
 def _find(root, word):
@@ -35,25 +38,28 @@ def _find(root, word):
     return node
 
 
-def _remove(node, word):
+def _remove(node, word, count):
     """Remove a word from a trie.
 
     :arg dict node: Current node.
     :arg str word: Word to be removed.
+    :arg int count: Multiplicity of `word`, force remove if this is -1.
 
-    :returns bool:
+    :returns bool: True if the last occurrence of `word` is removed.
     """
     if not word:
         if '' in node:
-            node.pop('')
-            return True
+            node['']['count'] -= count
+            if node['']['count'] < 1 or count == -1:
+                node.pop('')
+                return True
         return False
 
     car, cdr = word[0], word[1:]
     if car not in node:
         return False
 
-    result = _remove(node[car], cdr)
+    result = _remove(node[car], cdr, count)
     if result:
         if not node[car]:
             node.pop(car)
@@ -194,11 +200,17 @@ class Trie(object):
     def __iter__(self):
         return _iterate('', self.root)
 
-    def add(self, word):
-        _add(self.root, word)
+    def add(self, word, count=1):
+        _add(self.root, word, count)
 
-    def remove(self, word):
-        return _remove(self.root, word)
+    def get(self, word):
+        node = _find(self.root, word)
+        if '' in node:
+            return node['']
+        return None
+
+    def remove(self, word, count=1):
+        return _remove(self.root, word, count)
 
     def has_prefix(self, word):
         return _find(self.root, word) != {}
