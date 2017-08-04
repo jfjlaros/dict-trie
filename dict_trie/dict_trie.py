@@ -73,8 +73,9 @@ def _iterate(path, node):
         yield path
 
     for char in node:
-        for result in _iterate(path + char, node[char]):
-            yield result
+        if char:
+            for result in _iterate(path + char, node[char]):
+                yield result
 
 
 def _fill(node, alphabet, length):
@@ -117,16 +118,17 @@ def _hamming(path, node, word, distance, cigar):
 
     car, cdr = word[0], word[1:]
     for char in node:
-        if char == car:
-            penalty = 0
-            operation = '='
-        else:
-            penalty = 1
-            operation = 'X'
-        for result in _hamming(
-                path + char, node[char], cdr, distance - penalty,
-                cigar + operation):
-            yield result
+        if char:
+            if char == car:
+                penalty = 0
+                operation = '='
+            else:
+                penalty = 1
+                operation = 'X'
+            for result in _hamming(
+                    path + char, node[char], cdr, distance - penalty,
+                    cigar + operation):
+                yield result
 
 
 def _levenshtein(path, node, word, distance, cigar):
@@ -155,22 +157,23 @@ def _levenshtein(path, node, word, distance, cigar):
         yield result
 
     for char in node:
-        # Substitution.
-        if car:
-            if char == car:
-                penalty = 0
-                operation = '='
-            else:
-                penalty = 1
-                operation = 'X'
+        if char:
+            # Substitution.
+            if car:
+                if char == car:
+                    penalty = 0
+                    operation = '='
+                else:
+                    penalty = 1
+                    operation = 'X'
+                for result in _levenshtein(
+                        path + char, node[char], cdr, distance - penalty,
+                        cigar + operation):
+                    yield result
+            # Insertion.
             for result in _levenshtein(
-                    path + char, node[char], cdr, distance - penalty,
-                    cigar + operation):
+                    path + char, node[char], word, distance - 1, cigar + 'I'):
                 yield result
-        # Insertion.
-        for result in _levenshtein(
-                path + char, node[char], word, distance - 1, cigar + 'I'):
-            yield result
 
 
 class Trie(object):
