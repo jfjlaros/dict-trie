@@ -110,7 +110,7 @@ using the `fill` function.
 The trie data structure can be accessed via the `root` member variable.
 ```python
 >>> trie.root
-{'a': {'a': {'': {}}, 'b': {'': {}}}, 'b': {'a': {'': {}}, 'b': {'': {}}}}
+{'a': {'a': {'': 1}, 'b': {'': 1}}, 'b': {'a': {'': 1}, 'b': {'': 1}}}
 >>> trie.root.keys()
 ['a', 'b']
 ```
