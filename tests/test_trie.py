@@ -110,6 +110,13 @@ class TestTrie(object):
     def test_iter(self):
         assert list(self._trie) == ['abc', 'abd', 'te', 'test']
 
+    def test_list(self):
+        assert list(self._trie.list()) == list(self._trie)
+
+    def test_list_non_unique(self):
+        assert list(self._trie.list(False)) == [
+            'abc', 'abd', 'abd', 'te', 'test']
+
     def test_fill(self):
         trie = Trie()
         trie.fill(('a', 'b'), 3)

@@ -67,20 +67,24 @@ def _remove(node, word, count):
     return result
 
 
-def _iterate(path, node):
+def _iterate(path, node, unique):
     """Convert a trie into a list.
 
     :arg str path: Path taken so far to reach the current node.
     :arg dict node: Current node.
+    :arg bool unique: Do not list multiplicities.
 
     :returns iter: All words in the trie.
     """
     if '' in node:
+        if not unique:
+            for _ in range(1, node['']['count']):
+                yield path
         yield path
 
     for char in node:
         if char:
-            for result in _iterate(path + char, node[char]):
+            for result in _iterate(path + char, node[char], unique):
                 yield result
 
 
@@ -95,7 +99,7 @@ def _fill(node, alphabet, length):
         {alphabet}.
     """
     if not length:
-        node[''] = {}
+        node[''] = {'count': 1}
         return
 
     for char in alphabet:
@@ -198,7 +202,10 @@ class Trie(object):
         return '' in _find(self.root, word)
 
     def __iter__(self):
-        return _iterate('', self.root)
+        return _iterate('', self.root, True)
+
+    def list(self, unique=True):
+        return _iterate('', self.root, unique)
 
     def add(self, word, count=1):
         _add(self.root, word, count)
