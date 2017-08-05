@@ -17,11 +17,11 @@ class TestTrie(object):
         assert self._trie.root == {
             'a': {
                 'b': {
-                    'c': {'': {'count': 1}},
-                    'd': {'': {'count': 2}}}},
+                    'c': {'': 1},
+                    'd': {'': 2}}},
             't': {'e': {
-                '': {'count': 1},
-                's': {'t': {'': {'count': 1}}}}}}
+                '': 1,
+                's': {'t': {'': 1}}}}}
 
     def test_word_present(self):
         assert 'abc' in self._trie
@@ -61,18 +61,18 @@ class TestTrie(object):
         assert 'abx' in self._trie
 
     def test_get_present(self):
-        assert self._trie.get('abc')['count'] == 1
+        assert self._trie.get('abc') == 1
 
     def test_get_absent(self):
         assert not self._trie.get('abx')
 
     def test_add_twice(self):
         self._trie.add('abc')
-        assert self._trie.get('abc')['count'] == 2
+        assert self._trie.get('abc') == 2
 
     def test_add_multiple(self):
         self._trie.add('abc', 2)
-        assert self._trie.get('abc')['count'] == 3
+        assert self._trie.get('abc') == 3
 
     def test_remove_present(self):
         assert self._trie.remove('test')
@@ -93,14 +93,14 @@ class TestTrie(object):
     def test_remove_twice(self):
         self._trie.add('abc')
         assert not self._trie.remove('abc')
-        assert self._trie.get('abc')['count'] == 1
+        assert self._trie.get('abc') == 1
         assert self._trie.remove('abc')
         assert 'abc' not in self._trie
 
     def test_remove_multile(self):
         self._trie.add('abc', 3)
         assert not self._trie.remove('abc', 2)
-        assert self._trie.get('abc')['count'] == 2
+        assert self._trie.get('abc') == 2
 
     def test_remove_force(self):
         self._trie.add('abc')

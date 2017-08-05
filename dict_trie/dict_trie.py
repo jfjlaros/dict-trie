@@ -16,8 +16,8 @@ def _add(root, word, count):
         node = node[char]
 
     if '' not in node:
-        node[''] = {'count': 0}
-    node['']['count'] += count
+        node[''] = 0
+    node[''] += count
 
 
 def _find(root, word):
@@ -49,8 +49,8 @@ def _remove(node, word, count):
     """
     if not word:
         if '' in node:
-            node['']['count'] -= count
-            if node['']['count'] < 1 or count == -1:
+            node[''] -= count
+            if node[''] < 1 or count == -1:
                 node.pop('')
                 return True
         return False
@@ -78,7 +78,7 @@ def _iterate(path, node, unique):
     """
     if '' in node:
         if not unique:
-            for _ in range(1, node['']['count']):
+            for _ in range(1, node['']):
                 yield path
         yield path
 
@@ -99,7 +99,7 @@ def _fill(node, alphabet, length):
         {alphabet}.
     """
     if not length:
-        node[''] = {'count': 1}
+        node[''] = 1
         return
 
     for char in alphabet:
