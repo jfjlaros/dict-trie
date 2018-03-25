@@ -3,6 +3,7 @@ This library provides a [trie](https://en.wikipedia.org/wiki/Trie)
 implementation using nested dictionaries. Apart from the basic operations, a
 number of functions for *approximate matching* are implemented.
 
+
 ## Installation
 Via [pypi](https://pypi.python.org/pypi/dict-trie):
 
@@ -10,13 +11,13 @@ Via [pypi](https://pypi.python.org/pypi/dict-trie):
 
 From source:
 
-    git clone https://git.lumc.nl/j.f.j.laros/dict-trie.git
+    git clone https://github.com/jfjlaros/dict-trie.git
     cd dict-trie
     pip install .
 
+
 ## Usage
-The library provides the `Trie` class. Full documentation can be found
-[here](https://git.lumc.nl/j.f.j.laros/dict-trie)
+The library provides the `Trie` class.
 
 ### Basic operations
 Initialisation of the trie is done via the constructor by providing a list of
