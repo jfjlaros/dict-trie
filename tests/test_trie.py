@@ -8,7 +8,7 @@ from dict_trie import Trie
 
 class TestTrie(object):
     def setup(self):
-        self._trie = Trie(['abc', 'abd', 'test', 'te'])
+        self._trie = Trie(['abc', 'abd', 'abd', 'test', 'te'])
 
     def test_empty(self):
         assert Trie().root == {}
@@ -17,11 +17,11 @@ class TestTrie(object):
         assert self._trie.root == {
             'a': {
                 'b': {
-                    'c': {'': {}},
-                    'd': {'': {}}}},
+                    'c': {'': 1},
+                    'd': {'': 2}}},
             't': {'e': {
-                '': {},
-                's': {'t': {'': {}}}}}}
+                '': 1,
+                's': {'t': {'': 1}}}}}
 
     def test_word_present(self):
         assert 'abc' in self._trie
@@ -60,6 +60,20 @@ class TestTrie(object):
         self._trie.add('abx')
         assert 'abx' in self._trie
 
+    def test_get_present(self):
+        assert self._trie.get('abc') == 1
+
+    def test_get_absent(self):
+        assert not self._trie.get('abx')
+
+    def test_add_twice(self):
+        self._trie.add('abc')
+        assert self._trie.get('abc') == 2
+
+    def test_add_multiple(self):
+        self._trie.add('abc', 2)
+        assert self._trie.get('abc') == 3
+
     def test_remove_present(self):
         assert self._trie.remove('test')
         assert 'test' not in self._trie
@@ -76,8 +90,32 @@ class TestTrie(object):
     def test_remove_prefix_absent(self):
         assert not self._trie.remove('ab')
 
+    def test_remove_twice(self):
+        self._trie.add('abc')
+        assert not self._trie.remove('abc')
+        assert self._trie.get('abc') == 1
+        assert self._trie.remove('abc')
+        assert 'abc' not in self._trie
+
+    def test_remove_multile(self):
+        self._trie.add('abc', 3)
+        assert not self._trie.remove('abc', 2)
+        assert self._trie.get('abc') == 2
+
+    def test_remove_force(self):
+        self._trie.add('abc')
+        assert self._trie.remove('abc', -1)
+        assert 'abc' not in self._trie
+
     def test_iter(self):
         assert list(self._trie) == ['abc', 'abd', 'te', 'test']
+
+    def test_list(self):
+        assert list(self._trie.list()) == list(self._trie)
+
+    def test_list_non_unique(self):
+        assert list(self._trie.list(False)) == [
+            'abc', 'abd', 'abd', 'te', 'test']
 
     def test_fill(self):
         trie = Trie()
