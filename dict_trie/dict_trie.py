@@ -2,7 +2,7 @@ import sys
 
 
 if sys.version_info.major < 3:
-    from .compatibility import map
+    from itertools import imap as map
 
 
 def _add(root, word, count):
@@ -240,7 +240,7 @@ class Trie(object):
 
     def hamming(self, word, distance):
         try:
-            return self.all_hamming(word, distance).__next__()
+            return next(self.all_hamming(word, distance))
         except StopIteration:
             return ''
 
@@ -273,7 +273,7 @@ class Trie(object):
 
     def levenshtein(self, word, distance):
         try:
-            return self.all_levenshtein(word, distance).__next__()
+            return next(self.all_levenshtein(word, distance))
         except StopIteration:
             return ''
 
