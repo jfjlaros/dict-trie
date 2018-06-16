@@ -1,4 +1,8 @@
-import itertools
+import sys
+
+
+if sys.version_info.major < 3:
+    from .compatibility import map
 
 
 def _add(root, word, count):
@@ -226,17 +230,17 @@ class Trie(object):
         _fill(self.root, alphabet, length)
 
     def all_hamming_(self, word, distance):
-        return itertools.imap(
+        return map(
             lambda x: (x[0], distance - x[1], x[2]),
             _hamming('', self.root, word, distance, ''))
 
     def all_hamming(self, word, distance):
-        return itertools.imap(
+        return map(
             lambda x: x[0], _hamming('', self.root, word, distance, ''))
 
     def hamming(self, word, distance):
         try:
-            return self.all_hamming(word, distance).next()
+            return self.all_hamming(word, distance).__next__()
         except StopIteration:
             return ''
 
@@ -259,17 +263,17 @@ class Trie(object):
         return ''
 
     def all_levenshtein_(self, word, distance):
-        return itertools.imap(
+        return map(
             lambda x: (x[0], distance - x[1], x[2]),
             _levenshtein('', self.root, word, distance, ''))
 
     def all_levenshtein(self, word, distance):
-        return itertools.imap(
+        return map(
             lambda x: x[0], _levenshtein('', self.root, word, distance, ''))
 
     def levenshtein(self, word, distance):
         try:
-            return self.all_levenshtein(word, distance).next()
+            return self.all_levenshtein(word, distance).__next__()
         except StopIteration:
             return ''
 
