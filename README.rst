@@ -9,7 +9,7 @@ Trie implementation using nested dictionaries
    :target: https://pypi.org/project/dict-trie/
 .. image:: https://img.shields.io/github/release/jfjlaros/dict-trie.svg
    :target: https://github.com/jfjlaros/dict-trie/releases
-.. image:: https://img.shields.io/pypi/l/dict-trie.svg
+.. image:: https://img.shields.io/github/license/jfjlaros/dict-trie.svg
    :target: https://raw.githubusercontent.com/jfjlaros/dict-trie/master/LICENSE.md
 
 ----
