@@ -3,7 +3,7 @@ Trie implementation using nested dictionaries
 
 .. image:: https://travis-ci.org/jfjlaros/dict-trie.svg?branch=master
    :target: https://travis-ci.org/jfjlaros/dict-trie
-.. image:: https://dict-trie.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/dict-trie/badge/?version=latest
    :target: https://dict-trie.readthedocs.io/en/latest
 
 This library provides a trie_ implementation using nested dictionaries. Apart
