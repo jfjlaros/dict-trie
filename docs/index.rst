@@ -1,4 +1,4 @@
-.. doc_test documentation.
+.. dict-trie documentation.
 
 .. include:: ../README.rst
 

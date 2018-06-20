@@ -13,7 +13,7 @@ __version_info__ = ('0', '0', '3')
 __version__ = '.'.join(__version_info__)
 __author__ = 'Jeroen F.J. Laros'
 __contact__ = 'J.F.J.Laros@lumc.nl'
-__homepage__ = 'https://github.com/jfjlaros/dict-trie.git'
+__homepage__ = 'http://dict-trie.readthedocs.io/en/latest/'
 
 usage = __doc__.split('\n\n\n')
 

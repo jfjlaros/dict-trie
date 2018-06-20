@@ -3,6 +3,10 @@ Usage
 
 The library provides the ``Trie`` class.
 
+.. code:: python
+
+    >>> from dict_trie import Trie
+
 
 Basic operations
 ----------------
@@ -12,7 +16,6 @@ words.
 
 .. code:: python
 
-    >>> from dict_trie import Trie
     >>> trie = Trie(['abc', 'te', 'test'])
 
 Alternatively, an empty trie can be made to which words can be added with the

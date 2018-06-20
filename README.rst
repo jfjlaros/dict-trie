@@ -5,6 +5,10 @@ Trie implementation using nested dictionaries
    :target: https://travis-ci.org/jfjlaros/dict-trie
 .. image:: https://readthedocs.org/projects/dict-trie/badge/?version=latest
    :target: https://dict-trie.readthedocs.io/en/latest
+.. image:: https://img.shields.io/pypi/v/dict-trie.svg
+   :target: https://pypi.org/project/dict-trie/
+.. image:: https://img.shields.io/pypi/l/dict-trie.svg
+   :target: https://raw.githubusercontent.com/jfjlaros/dict-trie/master/LICENSE.md
 
 ----
 
