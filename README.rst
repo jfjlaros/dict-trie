@@ -3,6 +3,8 @@ Trie implementation using nested dictionaries
 
 .. image:: https://travis-ci.org/jfjlaros/dict-trie.svg?branch=master
    :target: https://travis-ci.org/jfjlaros/dict-trie
+.. image:: https://dict-trie.readthedocs.io/en/latest/?badge=latest
+   :target: https://dict-trie.readthedocs.io/en/latest
 
 This library provides a trie_ implementation using nested dictionaries. Apart
 from the basic operations, a number of functions for *approximate matching* are
@@ -12,4 +14,4 @@ Please see ReadTheDocs_ for the latest documentation.
 
 
 .. _trie: https://en.wikipedia.org/wiki/Trie
-.. _ReadTheDocs: http://dict-trie.readthedocs.io/en/latest/index.html
+.. _ReadTheDocs: https://dict-trie.readthedocs.io/en/latest/index.html
