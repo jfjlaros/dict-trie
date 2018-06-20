@@ -1,6 +1,9 @@
 Trie implementation using nested dictionaries
 =============================================
 
+.. image:: https://travis-ci.org/jfjlaros/dict-trie.svg?branch=master
+   :target: https://travis-ci.org/jfjlaros/dict-trie
+
 This library provides a trie_ implementation using nested dictionaries. Apart
 from the basic operations, a number of functions for *approximate matching* are
 implemented.
