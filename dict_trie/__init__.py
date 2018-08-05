@@ -8,7 +8,7 @@ Licensed under the MIT license, see the LICENSE file.
 from .dict_trie import Trie
 
 
-__version_info__ = ('0', '0', '3')
+__version_info__ = ('1', '0', '0')
 
 __version__ = '.'.join(__version_info__)
 __author__ = 'Jeroen F.J. Laros'
