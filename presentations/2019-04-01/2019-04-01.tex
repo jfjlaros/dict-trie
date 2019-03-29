@@ -1,0 +1,418 @@
+\documentclass[slidestop]{beamer}
+
+\author{Jeroen F.J. Laros}
+\title{Using a trie for multiple alignment}
+\providecommand{\mySubTitle}{}
+\providecommand{\myConference}{Work discussion}
+\providecommand{\myDate}{01-04-2019}
+\providecommand{\myGroup}{Research Software Engineering}
+\providecommand{\myDepartment}{Department of Human Genetics}
+\providecommand{\myCenter}{Center for Human and Clinical Genetics}
+
+\usetheme{lumc}
+\usepackage{forest}
+\usepackage{fancyvrb}
+
+\tikzset{% set up for transitions using tikz with beamer overlays
+  %invisible/.style={opacity=0,text opacity=0},
+  %visible on/.style={alt=#1{}{invisible}},
+  alt/.code args={<#1>#2#3}{%
+    \alt<#1>{\pgfkeysalso{#2}}{\pgfkeysalso{#3}} % \pgfkeysalso doesn't change the path
+  },
+  %transparent/.style={opacity=0.1,text opacity=0.1},
+  %opaque on/.style={alt=#1{}{transparent}},
+  %alerted/.style={color=alerttextdefaultfg},
+  %alert on/.style={alt=#1{alerted}{}},
+}
+%\forestset{%
+%  visible on/.style={%
+%    for tree={%
+%      /tikz/visible on={#1},
+%      edge={/tikz/visible on={#1}}}},
+%  opaque on/.style={%
+%    for tree={%
+%      /tikz/opaque on={#1},
+%      edge={/tikz/opaque on={#1}}}},
+%  alerted on/.style={%
+%    for tree={%
+%      /tikz/alerted on={#1},
+%      edge={/tikz/alerted on={#1}}}},
+%}
+
+\begin{document}
+
+% This disables the \pause command, handy in the editing phase.
+%\renewcommand{\pause}{}
+
+% Make the title slide.
+\makeTitleSlide{\includegraphics[height=3.5cm]{logos/lumc_logo_small}}
+
+
+% First page of the presentation.
+\section{Introduction}
+\makeTableOfContents
+
+\subsection{NGS}
+\begin{pframe}
+  \begin{minipage}[t]{0.47\textwidth}\begin{figure}[]
+    \begin{center}
+      \includegraphics[width=\textwidth]{NovaSeq6000}
+    \end{center}
+    \caption{Illumina NovaSeq 6000.}
+  \end{figure}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.47\textwidth}
+    \begin{Verbatim}[fontsize=\tiny]
+      @K0187:120:GFLBXX:1:1101:2950:1191 1:N:0:CTTGAG
+      TTAGGAAATAATAAATTGTAGTTTTTTTTATGATTTGGTTGAATTGATT
+      +
+      AAAFFJJJJJJ-AJFFFJ-FF<F<JJJAFJFFFJAFJJ<-FFFA<FFAA
+      @K0187:120:GFLBXX:1:1101:7710:1209 1:N:0:CTTGAG
+      GTCCACTAGAACTTGTAGAGCTGGAACCAACTGATTTGCAAAAGCAAAA
+      +
+      AA-FFFJAAAF-FFAJJJFJJJ--AFFJJFFJJFAFA-FJJJJFJJJJF
+      @K0187:120:GFLBXX:1:1101:17269:1209 1:N:0:CTTGAG
+      GTACTTGATGAATATTTACTAAAGAATGGAAGGAAAAAAGAAAGAAGGA
+      +
+      AAFFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+      @K0187:120:GFLBXX:1:1101:28067:1209 1:N:0:CTTGAG
+      TGGGTGTGTTAAGAATGACATTCAACGCAGTCTCTTTACCACCTCCCCA
+      +
+      AAA-FJFJFJFAJJJJFFJFAFJJJJFFJFAJJJJFFJJJAAJ7FFJJA
+      @K0187:120:GFLBXX:1:1101:1367:1226 1:N:0:CTTGAG
+      NTAGGTGTAAAAACATGATCATCGAAGAGACAAGAAATAGAACGTATTT
+      +
+      #AAFFFJFJJJJJJJJJJJJJJJJFJFJFAFJJJJJJJJJJJJJJJAFF
+      @K0187:120:GFLBXX:1:1101:8410:1226 1:N:0:CTTGAG
+      AGTGAGACCCTCTCTCTAAAAAGAAAAAAGAAAAAAAATTATGATGTTT
+      +
+      AAFAFFJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ
+    \end{Verbatim}
+  \end{minipage}
+\end{pframe}
+
+\begin{pframe}
+  \begin{figure}[]
+    \begin{center}
+      \includegraphics[trim=40 160 40 40, clip, width=\textwidth]{barcodes}
+    \end{center}
+    \caption{}
+    \label{}
+  \end{figure}
+\end{pframe}
+
+
+\section{Sequence alignment}
+\begin{pframe}
+  The Levenshtein distance is a string metric for measuring the difference
+  between two sequences. Informally, the Levenshtein distance between two words
+  is the minimum number of single-character edits (insertions, deletions or
+  substitutions) required to change one word into the other.
+  \vfill
+
+  \permfoot{\url{https://en.wikipedia.org/wiki/Levenshtein_distance}}
+\end{pframe}
+
+\subsection{Edit distance}
+\begin{pframe}
+  The Levenshtein distance between two strings $a$, $b$ (of length $|a|$ and
+  $|b|$ respectively) is given by $\operatorname{lev}_{a, b}(|a|, |b|)$ where
+  \bigskip
+
+  \begin{math}
+    \operatorname{lev}_{a, b}(i, j) = \begin{cases}
+      \max(i, j) & \text{if } \min(i, j) = 0, \\
+      \min \begin{cases}
+        \operatorname{lev}_{a, b}(i - 1, j) + 1 \\
+        \operatorname{lev}_{a, b}(i, j - 1) + 1 \\
+        \operatorname{lev}_{a, b}(i - 1, j - 1) + 1_{(a_i \neq b_j)}
+      \end{cases} & \text{otherwise.}
+    \end{cases}
+  \end{math}
+  \bigskip
+
+  where  $1_{(a_i \neq b_j)}$ is the indicator function equal to $0$ when
+  $a_i = b_j$ and equal to $1$ otherwise, and $\operatorname{lev}_{a, b}(i, j)$
+  is the distance between the first $i$ characters of $a$ and the first $j$
+  characters of $b$.
+  \vfill
+
+  \permfoot{\url{https://en.wikipedia.org/wiki/Levenshtein_distance}}
+\end{pframe}
+  \begin{math}
+    \operatorname{lev}_{a, b}(5, 5) \begin{cases}
+      \operatorname{lev}_{a, b}(4, 5) \\
+      \operatorname{lev}_{a, b}(5, 4) \\
+      \operatorname{lev}_{a, b}(4, 4)
+    \end{cases}
+  \end{math}
+
+  \pause
+  \begin{math}
+    \operatorname{lev}_{a, b}(4, 5) \begin{cases}
+      \operatorname{lev}_{a, b}(3, 5) \\
+      \operatorname{lev}_{a, b}(4, 4) \\
+      \operatorname{lev}_{a, b}(3, 3)
+    \end{cases}
+  \end{math}
+\begin{pframe}
+\end{pframe}
+
+
+\begin{pframe}
+  \begin{lstlisting}[language=python]
+    def lev(a, b):
+        if not a:
+            return len(b)
+        if not b:
+            return len(a)
+    
+        if a[-1] != b[-1]:
+            return min(
+                lev(a[:-1], b),
+                lev(a, b[:-1]), 
+                lev(a[:-1], b[:-1])) + 1
+
+        return lev(a[:-1], b[:-1])
+  \end{lstlisting}
+\end{pframe}
+
+\begin{pframe}
+  \begin{itemize}
+    \item Vintsyuk, 1968
+    \item Needleman and Wunsch, 1970
+    \item Sankoff, 1972
+    \item Sellers, 1974
+    \item Wagner and Fischer, 1974
+    \item Lowrance and Wagner, 1975
+  \end{itemize}
+\end{pframe}
+
+\begin{pframe}
+  % Dynamic programming implementation.
+  \begin{lstlisting}[language=python, caption=.]
+    def lev(a, b):
+        d = [[0] * len(a) for _ in b]
+    
+        for i in range(len(a)):
+            d[i][0] = i
+        for j in range(1, len(b)):
+            d[0][j] = j
+  \end{lstlisting}
+    
+  \begin{lstlisting}[language=python, caption=.]
+        for i in range(1, len(a)):
+            for j in range(1, len(b)):
+                if a[i-1] != b[j-1]:
+                    d[i][j] = min(
+                        d[i-1][j],
+                        d[i][j-1],
+                        d[i-1][j-1]) + 1
+                else:
+                    d[i][j] = d[i-1][j-1]
+    
+        return matrix[i][j]
+  \end{lstlisting}
+\end{pframe}
+
+\begin{pframe}
+  \begin{math}
+    \begin{matrix}
+               & - & \text{A} & \text{T} & \text{G} & \text{T} & \text{T} &
+                     \text{C} & \text{T} & \text{A} \\
+         -     & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+      \text{A} & 1 & \onslide<2->{0 & 1 & 2 & 3 & 4 & 5 & 6 & 7} \\
+      \text{C} & 2 & \onslide<2->{1 & 1 & \onslide<3->{2 & 3 & 4 & 4 & 5 & 6}} \\
+      \text{G} & 3 & \onslide<2->{\onslide<3->{2 & 2 & 1 & 2 & 3 & 4 & 5 & 6}} \\
+      \text{T} & 4 & \onslide<2->{\onslide<3->{3 & 2 & 2 & 1 & 2 & 3 & 4 & 5}} \\
+      \text{T} & 5 & \onslide<2->{\onslide<3->{4 & 3 & 3 & 2 & 1 & 2 & 3 & 4}} \\
+      \text{T} & 6 & \onslide<2->{\onslide<3->{5 & 4 & 4 & 3 & 2 & 2 & 2 & 3}} \\
+      \text{A} & 7 & \onslide<2->{\onslide<3->{6 & 5 & 5 & 4 & 3 & 3 & 3 & 2}} \\
+    \end{matrix}
+  \end{math}
+\end{pframe}
+
+\subsection{Barcode design}
+\begin{pframe}
+  % Error correction.
+\end{pframe}
+
+\subsection{10X}
+\begin{pframe}
+  
+\end{pframe}
+
+
+\section{Tries}
+\subsection{}
+\begin{pframe}
+  \begin{forest}
+    for tree={
+      circle, black, draw, fill=blue!40}[{}
+      [{}, edge label={node [midway, left] {A}}
+        [{}, edge label={node [midway, left] {A}}
+          [{}, edge label={node [midway, left] {A}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]]
+        [{}, edge label={node [midway, right] {C}}
+          [{}, edge label={node [midway, left] {A}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]]]
+      [{}, edge label={node [midway, right] {C}}
+        [{}, edge label={node [midway, left] {A}}
+          [{}, edge label={node [midway, left] {A}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]]
+        [{}, edge label={node [midway, right] {C}}
+          [{}, edge label={node [midway, left] {A}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}]
+            [{}, edge label={node [midway, right] {C}}]]]]]
+  \end{forest} 
+\end{pframe}
+
+\begin{pframe}
+  \begin{forest}
+    for tree={
+      circle,
+      black,
+      draw,
+      fill=blue!40}[{}
+      [{}, edge label={node [midway, left] {A}}
+        [{}, edge label={node [midway, left] {A}}
+          [{}, edge label={node [midway, left] {A}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$4$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]
+        [{$8$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}
+          [, phantom]
+          [, phantom]]]
+      [{}, edge label={node [midway, right] {C}}
+        [{}, edge label={node [midway, left] {A}}
+          [{$1$}, fill=white, edge label={node [midway, left] {$\boldsymbol\epsilon$}}
+            [, phantom]
+            [, phantom]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+        [{}, edge label={node [midway, right] {C}}
+          [{}, edge label={node [midway, left] {A}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$3$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]]]
+  \end{forest} 
+\end{pframe}
+
+\begin{pframe}
+  % search for CAAA
+  \begin{forest}
+    for tree={
+      circle,
+      black,
+      draw,
+      fill=blue!40}[{}, alt=<2->{fill=yellow}{}
+      [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+        [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+          [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+            [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$4$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]
+        [{$8$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}
+          [, phantom]
+          [, phantom]]]
+      [{}, alt=<3->{fill=yellow}{}, edge label={node [midway, right] {C}}
+        [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, left] {A}}
+          [{$1$}, fill=white, edge label={node [midway, left] {$\boldsymbol\epsilon$}}
+            [, phantom]
+            [, phantom]]
+          [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, right] {C}}
+            [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+        [{}, alt=<4>{fill=yellow}, edge label={node [midway, right] {C}}
+          [{}, alt=<4>{fill=yellow}, edge label={node [midway, left] {A}}
+            [{}, alt=<4>{fill=yellow}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+          [{}, edge label={node [midway, right] {C}}
+            [{}, edge label={node [midway, left] {A}}
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{$3$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]]]
+  \end{forest}
+
+  \vspace{-6cm}
+  \hspace{9.5cm}\vbox{
+    \texttt{CAAA}\\
+    \onslide<2->\texttt{\color{red}A\color{black}AAA}\\
+    \onslide<3->\texttt{CA\color{red}C\color{black}A}\\
+    \onslide<4->\texttt{C\color{red}C\color{black}AA}
+  }
+\end{pframe}
+
+
+\section{Basic trie data structure}
+\subsection{}
+\begin{pframe}
+  \begin{lstlisting}[language=none, caption=.]
+    {
+      'a': {
+        'b': {
+          'c': {
+            '': 1}}},
+      't': {
+        'e': {
+          '': 1,
+          's': {
+            't': {
+              '': 2}}}}}
+  \end{lstlisting}
+\end{pframe}
+
+
+\section{Results}
+\subsection{}
+\begin{pframe}
+  
+\end{pframe}
+
+
+% Make the acknowledgements slide.
+\makeAcknowledgementsSlide{
+  \begin{tabular}{ll}
+  \end{tabular}
+}
+
+\end{document}
