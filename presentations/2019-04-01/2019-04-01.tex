@@ -1,9 +1,9 @@
 \documentclass[slidestop]{beamer}
 
 \author{Jeroen F.J. Laros}
-\title{Using a trie for multiple alignment}
+\title{Using tries for multiple alignment}
 \providecommand{\mySubTitle}{}
-\providecommand{\myConference}{Work discussion}
+\providecommand{\myConference}{Developers meeting}
 \providecommand{\myDate}{01-04-2019}
 \providecommand{\myGroup}{Research Software Engineering}
 \providecommand{\myDepartment}{Department of Human Genetics}
@@ -45,7 +45,7 @@
 %\renewcommand{\pause}{}
 
 % Make the title slide.
-\makeTitleSlide{\includegraphics[height=3.5cm]{logos/lumc_logo_small}}
+\makeTitleSlide{\includegraphics[height=3.5cm]{Trie_example}}
 
 
 % First page of the presentation.
@@ -54,7 +54,8 @@
 
 \subsection{NGS}
 \begin{pframe}
-  \begin{minipage}[t]{0.47\textwidth}\begin{figure}[]
+  \begin{minipage}[t]{0.47\textwidth}
+    \begin{figure}[]
     \begin{center}
       \includegraphics[width=\textwidth]{NovaSeq6000}
     \end{center}
@@ -92,18 +93,61 @@
   \end{minipage}
 \end{pframe}
 
+\subsection{Barcodes}
 \begin{pframe}
   \begin{figure}[]
+    \vspace{-.5cm}
     \begin{center}
       \includegraphics[trim=40 160 40 40, clip, width=\textwidth]{barcodes}
     \end{center}
-    \caption{}
-    \label{}
+    \caption{Illumina NGS barcodes.}
   \end{figure}
+\end{pframe}
+
+\begin{pframe}
+  \begin{figure}[]
+    \begin{verbatim}
+  @K0187:120:GFLBXX:1:1101:2950:1191 1:N:0:CTTGAG
+  TTAGGAAATAATAAATTGTAGTTTTTTTTATGATTTGGTTGAATTGATT
+  +
+  AAAFFJJJJJJ-AJFFFJ-FF<F<JJJAFJFFFJAFJJ<-FFFA<FFAA
+  @K0187:120:GFLBXX:1:1101:7710:1209 1:N:0:CTTGAG
+  GTCCACTAGAACTTGTAGAGCTGGAACCAACTGATTTGCAAAAGCAAAA
+  +
+  AA-FFFJAAAF-FFAJJJFJJJ--AFFJJFFJJFAFA-FJJJJFJJJJF
+    \end{verbatim}
+    \caption{Barcodes in the header.}
+  \end{figure}
+\end{pframe}
+
+\subsection{Barcode design}
+\begin{pframe}
+  Characteristics:
+  \begin{itemize}
+    \item ``Easy'' to read (depending on the platform).
+    \begin{itemize}
+      \item No mononucleotide stretches.
+      \item No extreme GC-content.
+    \end{itemize}
+    \item Sufficiently distinct.
+  \end{itemize}
+  \bigskip
+  \pause
+
+  Error detection and correction:
+  \begin{itemize}
+    \item Distance between any pair $> 2$: One letter error detection.
+    \item Distance between any pair $> 3$: One letter error correction.
+    \item Distance between any pair $> 5$: Two letter error correction.
+  \end{itemize}
+  \vfill
+
+  \permfoot{\url{https://github.com/jfjlaros/barcode}}
 \end{pframe}
 
 
 \section{Sequence alignment}
+\subsection{Edit distance}
 \begin{pframe}
   The Levenshtein distance is a string metric for measuring the difference
   between two sequences. Informally, the Levenshtein distance between two words
@@ -114,7 +158,6 @@
   \permfoot{\url{https://en.wikipedia.org/wiki/Levenshtein_distance}}
 \end{pframe}
 
-\subsection{Edit distance}
 \begin{pframe}
   The Levenshtein distance between two strings $a$, $b$ (of length $|a|$ and
   $|b|$ respectively) is given by $\operatorname{lev}_{a, b}(|a|, |b|)$ where
@@ -132,7 +175,7 @@
   \end{math}
   \bigskip
 
-  where  $1_{(a_i \neq b_j)}$ is the indicator function equal to $0$ when
+  where $1_{(a_i \neq b_j)}$ is the indicator function equal to $0$ when
   $a_i = b_j$ and equal to $1$ otherwise, and $\operatorname{lev}_{a, b}(i, j)$
   is the distance between the first $i$ characters of $a$ and the first $j$
   characters of $b$.
@@ -140,38 +183,19 @@
 
   \permfoot{\url{https://en.wikipedia.org/wiki/Levenshtein_distance}}
 \end{pframe}
-  \begin{math}
-    \operatorname{lev}_{a, b}(5, 5) \begin{cases}
-      \operatorname{lev}_{a, b}(4, 5) \\
-      \operatorname{lev}_{a, b}(5, 4) \\
-      \operatorname{lev}_{a, b}(4, 4)
-    \end{cases}
-  \end{math}
-
-  \pause
-  \begin{math}
-    \operatorname{lev}_{a, b}(4, 5) \begin{cases}
-      \operatorname{lev}_{a, b}(3, 5) \\
-      \operatorname{lev}_{a, b}(4, 4) \\
-      \operatorname{lev}_{a, b}(3, 3)
-    \end{cases}
-  \end{math}
-\begin{pframe}
-\end{pframe}
-
 
 \begin{pframe}
-  \begin{lstlisting}[language=python]
+  \begin{lstlisting}[language=python, caption={Recursive implementation.}]
     def lev(a, b):
         if not a:
             return len(b)
         if not b:
             return len(a)
-    
+
         if a[-1] != b[-1]:
             return min(
                 lev(a[:-1], b),
-                lev(a, b[:-1]), 
+                lev(a, b[:-1]),
                 lev(a[:-1], b[:-1])) + 1
 
         return lev(a[:-1], b[:-1])
@@ -179,214 +203,225 @@
 \end{pframe}
 
 \begin{pframe}
-  \begin{itemize}
-    \item Vintsyuk, 1968
-    \item Needleman and Wunsch, 1970
-    \item Sankoff, 1972
-    \item Sellers, 1974
-    \item Wagner and Fischer, 1974
-    \item Lowrance and Wagner, 1975
-  \end{itemize}
-\end{pframe}
+  Not very efficient.
+  \bigskip
 
-\begin{pframe}
-  % Dynamic programming implementation.
-  \begin{lstlisting}[language=python, caption=.]
-    def lev(a, b):
-        d = [[0] * len(a) for _ in b]
-    
-        for i in range(len(a)):
-            d[i][0] = i
-        for j in range(1, len(b)):
-            d[0][j] = j
-  \end{lstlisting}
-    
-  \begin{lstlisting}[language=python, caption=.]
-        for i in range(1, len(a)):
-            for j in range(1, len(b)):
-                if a[i-1] != b[j-1]:
-                    d[i][j] = min(
-                        d[i-1][j],
-                        d[i][j-1],
-                        d[i-1][j-1]) + 1
-                else:
-                    d[i][j] = d[i-1][j-1]
-    
-        return matrix[i][j]
-  \end{lstlisting}
-\end{pframe}
-
-\begin{pframe}
   \begin{math}
-    \begin{matrix}
-               & - & \text{A} & \text{T} & \text{G} & \text{T} & \text{T} &
-                     \text{C} & \text{T} & \text{A} \\
-         -     & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
-      \text{A} & 1 & \onslide<2->{0 & 1 & 2 & 3 & 4 & 5 & 6 & 7} \\
-      \text{C} & 2 & \onslide<2->{1 & 1 & \onslide<3->{2 & 3 & 4 & 4 & 5 & 6}} \\
-      \text{G} & 3 & \onslide<2->{\onslide<3->{2 & 2 & 1 & 2 & 3 & 4 & 5 & 6}} \\
-      \text{T} & 4 & \onslide<2->{\onslide<3->{3 & 2 & 2 & 1 & 2 & 3 & 4 & 5}} \\
-      \text{T} & 5 & \onslide<2->{\onslide<3->{4 & 3 & 3 & 2 & 1 & 2 & 3 & 4}} \\
-      \text{T} & 6 & \onslide<2->{\onslide<3->{5 & 4 & 4 & 3 & 2 & 2 & 2 & 3}} \\
-      \text{A} & 7 & \onslide<2->{\onslide<3->{6 & 5 & 5 & 4 & 3 & 3 & 3 & 2}} \\
-    \end{matrix}
+    \operatorname{lev}_{a, b}(5, 5) \begin{cases}
+      \operatorname{lev}_{a, b}(4, 5) \\
+      \operatorname{lev}_{a, b}(5, 4) \\
+      \operatorname{lev}_{a, b}(4, 4) \onslide<3>{\Leftarrow}
+    \end{cases}
   \end{math}
+  \bigskip
+  \pause
+
+  \begin{math}
+    \operatorname{lev}_{a, b}(4, 5) \begin{cases}
+      \operatorname{lev}_{a, b}(3, 5) \\
+      \operatorname{lev}_{a, b}(4, 4) \onslide<3>{\Leftarrow}\\
+      \operatorname{lev}_{a, b}(3, 3)
+    \end{cases}
+  \end{math}
+  \bigskip
+
+  Quite some values are recalculated.
 \end{pframe}
 
-\subsection{Barcode design}
+\subsection{Dynamic programming}
 \begin{pframe}
-  % Error correction.
+  A \emph{dynamic programming} algorithm can be used to avoid recalculating
+  results.
+  \bigskip
+
+  This particular algorithm has a history of multiple invention.
+  \begin{itemize}
+    \item Vintsyuk, 1968.
+    \item Needleman and Wunsch, 1970.
+    \item Sankoff, 1972.
+    \item Sellers, 1974.
+    \item Wagner and Fischer, 1974.
+    \item Lowrance and Wagner, 1975.
+  \end{itemize}
+  \vfill
+
+  \permfoot{\url{https://en.wikipedia.org/wiki/Dynamic_programming}}
+  \permfoot{\url{https://en.wikipedia.org/wiki/Wagner-Fischer_algorithm}}
 \end{pframe}
 
-\subsection{10X}
 \begin{pframe}
-  
+  \begin{figure}[]
+    \begin{center}
+      \begin{math}
+        \begin{matrix}
+                   & - & \text{A} & \text{T} & \text{G} & \text{T} & \text{T} &
+                         \text{C} & \text{T} & \text{A} \\
+             -     & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+          \text{A} & 1 & \onslide<2->{0 & 1 & 2 & 3 & 4 & 5 & 6 & 7} \\
+          \text{C} & 2 & \onslide<2->{1 & 1 & \onslide<3->{2 & 3 & 4 & 4 & 5 & 6}} \\
+          \text{G} & 3 & \onslide<2->{\onslide<3->{2 & 2 & 1 & 2 & 3 & 4 & 5 & 6}} \\
+          \text{T} & 4 & \onslide<2->{\onslide<3->{3 & 2 & 2 & 1 & 2 & 3 & 4 & 5}} \\
+          \text{T} & 5 & \onslide<2->{\onslide<3->{4 & 3 & 3 & 2 & 1 & 2 & 3 & 4}} \\
+          \text{T} & 6 & \onslide<2->{\onslide<3->{5 & 4 & 4 & 3 & 2 & 2 & 2 & 3}} \\
+          \text{A} & 7 & \onslide<2->{\onslide<3->{6 & 5 & 5 & 4 & 3 & 3 & 3 & 2}} \\
+        \end{matrix}
+      \end{math}
+    \end{center}
+    \caption{Aligning \texttt{ATGTTCTA} to \texttt{ACGTTTA}.}
+  \end{figure}
+\end{pframe}
+
+\subsection{Demultiplexing}
+\begin{pframe}
+  Versatile NGS demultiplexer with the following features:
+
+  \begin{itemize}
+    \item Support for FASTA and FASTQ files.
+    \item Support for multiple reads per fragment, e.g., paired-end.
+    \item Handles barcodes in the header and in the reads.
+    \item Support for selection of part of a barcode.
+    \item Allows for mismatches, insertions and deletions.
+    \item Barcode guessing by frequency or fixed amount.
+    \item Handles large numbers (over one million) of barcodes.
+  \end{itemize}
+  \vfill
+
+  \permfoot{\url{https://demultiplex.readthedocs.io/en/latest/index.html}}
+\end{pframe}
+
+
+\section{Scaling up}
+\subsection{10x Genomics}
+\begin{pframe}
+  \begin{figure}[]
+    \vspace{-0.5cm}
+    \begin{center}
+      \includegraphics[height=0.7\textheight]{10x_overview}
+    \end{center}
+    \caption{10x Genomics overview.}
+  \end{figure}
+\end{pframe}
+
+\begin{pframe}
+  Typical Illumina barcode set has up to $96$ barcodes.
+
+  \begin{itemize}
+    \item In practice, up to $12$ are used in one lane.
+  \end{itemize}
+  \bigskip
+
+  10x Genomics barcode set has $737,\!000$ barcodes.
+
+  \begin{itemize}
+    \item The first read was not processed after $10$ minutes.
+  \end{itemize}
+  \bigskip
+  \pause
+
+  We are not interested in the edit distance between our barcode and the full
+  set.
+
+  \begin{itemize}
+    \item Is our barcode in the set?
+    \item Is there a barcode in the set that has at most edit distance $1$?
+  \end{itemize}
 \end{pframe}
 
 
 \section{Tries}
-\subsection{}
+\subsection{Storing and retrieving words}
 \begin{pframe}
-  \begin{forest}
-    for tree={
-      circle, black, draw, fill=blue!40}[{}
-      [{}, edge label={node [midway, left] {A}}
+  \begin{figure}[]
+    \vspace{-0.5cm}
+    \begin{forest}
+      for tree={
+        circle, black, draw, fill=blue!40}[{}
         [{}, edge label={node [midway, left] {A}}
           [{}, edge label={node [midway, left] {A}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]
+            [{}, edge label={node [midway, left] {A}}
+              [{}, edge label={node [midway, left] {A}}]
+              [{}, edge label={node [midway, right] {C}}]]
+            [{}, edge label={node [midway, right] {C}}
+              [{}, edge label={node [midway, left] {A}}]
+              [{}, edge label={node [midway, right] {C}}]]]
           [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]]
+            [{}, edge label={node [midway, left] {A}}
+              [,phantom]
+              [,phantom]]
+            [{}, edge label={node [midway, left] {T}}
+              [,phantom]
+              [,phantom]]
+            [{}, edge label={node [midway, right] {C}}
+              [,phantom]
+              [,phantom]]]]
         [{}, edge label={node [midway, right] {C}}
           [{}, edge label={node [midway, left] {A}}
             [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]]]
-      [{}, edge label={node [midway, right] {C}}
-        [{}, edge label={node [midway, left] {A}}
-          [{}, edge label={node [midway, left] {A}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]]
-        [{}, edge label={node [midway, right] {C}}
-          [{}, edge label={node [midway, left] {A}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}]
-            [{}, edge label={node [midway, right] {C}}]]]]]
-  \end{forest} 
+            [{}, edge label={node [midway, right] {C}}
+              [{}, edge label={node [midway, left] {A}}]
+              [{}, edge label={node [midway, right] {C}}]]]]]
+    \end{forest}
+    \caption{Example trie.}
+    \vspace{-0.5cm}
+  \end{figure}
+
+  Contains: \texttt{AAAA}, \texttt{AAAC}, \texttt{AACA}, \texttt{AACC},
+  \texttt{ACA}, \texttt{ACT}, \texttt{ACC}, \texttt{CAA}, \texttt{CACA} and
+  \texttt{CACC}.
 \end{pframe}
 
 \begin{pframe}
-  \begin{forest}
-    for tree={
-      circle,
-      black,
-      draw,
-      fill=blue!40}[{}
-      [{}, edge label={node [midway, left] {A}}
+  \begin{figure}[]
+    \vspace{-0.5cm}
+    \begin{forest}
+      for tree={
+        circle,
+        black,
+        draw,
+        fill=blue!40}[{},
         [{}, edge label={node [midway, left] {A}}
           [{}, edge label={node [midway, left] {A}}
             [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
             [{}, edge label={node [midway, right] {C}}
-              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{}, edge label={node [midway, right] {C}}
-              [{$4$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]
-        [{$8$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}
-          [, phantom]
-          [, phantom]]]
-      [{}, edge label={node [midway, right] {C}}
-        [{}, edge label={node [midway, left] {A}}
-          [{$1$}, fill=white, edge label={node [midway, left] {$\boldsymbol\epsilon$}}
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$4$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]
+          [{$8$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}
             [, phantom]
-            [, phantom]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
-        [{}, edge label={node [midway, right] {C}}
+            [, phantom]]]
+        [{},  edge label={node [midway, right] {C}}
           [{}, edge label={node [midway, left] {A}}
-            [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+            [{$1$}, fill=white, edge label={node [midway, left] {$\boldsymbol\epsilon$}}
+              [, phantom]
+              [, phantom]]
             [{}, edge label={node [midway, right] {C}}
-              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
           [{}, edge label={node [midway, right] {C}}
             [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
             [{}, edge label={node [midway, right] {C}}
-              [{$3$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]]]
-  \end{forest} 
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$3$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]]]
+    \end{forest}
+    \caption{Allow substrings and multiple occurrences.}
+  \end{figure}
 \end{pframe}
 
+\subsection{Tries using Python dictionaries}
 \begin{pframe}
-  % search for CAAA
-  \begin{forest}
-    for tree={
-      circle,
-      black,
-      draw,
-      fill=blue!40}[{}, alt=<2->{fill=yellow}{}
-      [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
-        [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
-          [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
-            [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{}, edge label={node [midway, right] {C}}
-              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{}, edge label={node [midway, right] {C}}
-              [{$4$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]
-        [{$8$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}
-          [, phantom]
-          [, phantom]]]
-      [{}, alt=<3->{fill=yellow}{}, edge label={node [midway, right] {C}}
-        [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, left] {A}}
-          [{$1$}, fill=white, edge label={node [midway, left] {$\boldsymbol\epsilon$}}
-            [, phantom]
-            [, phantom]]
-          [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, right] {C}}
-            [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
-        [{}, alt=<4>{fill=yellow}, edge label={node [midway, right] {C}}
-          [{}, alt=<4>{fill=yellow}, edge label={node [midway, left] {A}}
-            [{}, alt=<4>{fill=yellow}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{}, edge label={node [midway, right] {C}}
-              [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
-          [{}, edge label={node [midway, right] {C}}
-            [{}, edge label={node [midway, left] {A}}
-              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
-            [{}, edge label={node [midway, right] {C}}
-              [{$3$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]]]
-  \end{forest}
-
-  \vspace{-6cm}
-  \hspace{9.5cm}\vbox{
-    \texttt{CAAA}\\
-    \onslide<2->\texttt{\color{red}A\color{black}AAA}\\
-    \onslide<3->\texttt{CA\color{red}C\color{black}A}\\
-    \onslide<4->\texttt{C\color{red}C\color{black}AA}
-  }
-\end{pframe}
-
-
-\section{Basic trie data structure}
-\subsection{}
-\begin{pframe}
-  \begin{lstlisting}[language=none, caption=.]
+  \begin{lstlisting}[language=none, caption={Using Python disctionaries.}]
     {
       'a': {
         'b': {
@@ -399,13 +434,114 @@
             't': {
               '': 2}}}}}
   \end{lstlisting}
+
+  Trie containing \texttt{abc}, \texttt{te}, \texttt{test} and \texttt{test}.
+
+\end{pframe}
+
+\subsection{Algorithm outline}
+\begin{pframe}
+  We recursively try every edge, keeping track of the amount of errors we made.
+  \bigskip
+
+  Hamming distance:
+  \begin{itemize}
+    \item A ``wrong'' edge may be followed if we still have room for errors
+      left.
+  \end{itemize}
+  \bigskip
+
+  Edit distance:
+  \begin{itemize}
+    \item A ``wrong'' edge may be followed if we still have room for errors
+      left.
+    \item We can choose not to follow an edge.
+    \item We can choose not skip an edge.
+  \end{itemize}
+\end{pframe}
+
+\begin{pframe}
+  \begin{figure}[]
+    \vspace{-0.5cm}
+    \begin{forest}
+      for tree={
+        circle,
+        black,
+        draw,
+        fill=blue!40}[{}, alt=<2->{fill=yellow}{}
+        [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+          [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+            [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+              [{}, alt=<2>{fill=yellow}{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+            [{}, edge label={node [midway, right] {C}}
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$4$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]
+          [{$8$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}
+            [, phantom]
+            [, phantom]]]
+        [{}, alt=<3->{fill=yellow}{}, edge label={node [midway, right] {C}}
+          [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, left] {A}}
+            [{$1$}, fill=white, edge label={node [midway, left] {$\boldsymbol\epsilon$}}
+              [, phantom]
+              [, phantom]]
+            [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, right] {C}}
+              [{}, alt=<3>{fill=yellow}{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+          [{}, alt=<4>{fill=yellow}{}, edge label={node [midway, right] {C}}
+            [{}, alt=<4>{fill=yellow}{}, edge label={node [midway, left] {A}}
+              [{}, alt=<4>{fill=yellow}{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$2$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]
+            [{}, edge label={node [midway, right] {C}}
+              [{}, edge label={node [midway, left] {A}}
+                [{$1$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]
+              [{}, edge label={node [midway, right] {C}}
+                [{$3$}, fill=white, edge label={node [midway, right] {$\boldsymbol\epsilon$}}]]]]]]
+    \end{forest}
+    \caption{Finding \texttt{CAAA}.}
+  \end{figure}
+
+  \vspace{-7cm}
+  \hspace{9.5cm}\vbox{
+    \onslide<2->\texttt{\color{red}A\color{black}AAA}\\
+    \onslide<3->\texttt{CA\color{red}C\color{black}A}\\
+    \onslide<4->\texttt{C\color{red}C\color{black}AA}
+  }
 \end{pframe}
 
 
 \section{Results}
-\subsection{}
+\subsection{Implementation}
 \begin{pframe}
-  
+  Reference implementation of approximate matching using tries.
+
+  \begin{itemize}
+    \item Hamming distance.
+    \item Edit distance.
+  \end{itemize}
+  \bigskip
+
+  Demultiplexer using this library.
+
+  \begin{itemize}
+    \item Able to work with large amounts of barcodes.
+    \item Relatively efficient. Demultiplexing a 10x dataset takes a couple of
+      hours.
+  \end{itemize}
+  \vfill
+
+  \permfoot{\url{https://dict-trie.readthedocs.io/en/latest/}}
+
+  \permfoot{\url{https://github.com/jfjlaros/demultiplex}}
+
+  \permfoot{\url{https://github.com/jfjlaros/jit-open}}
 \end{pframe}
 
 
