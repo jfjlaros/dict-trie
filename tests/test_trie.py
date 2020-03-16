@@ -183,6 +183,9 @@ class TestTrie(object):
     def test_best_hamming_match(self):
         assert self._trie.best_hamming('abd', 1) == 'abd'
 
+    def test_best_hamming_no_match(self):
+        assert self._trie.best_hamming('ab', 0) == None
+
     def test_all_levenshtein_1_not_perfect(self):
         assert list(self._trie.all_levenshtein('tes', 1)) == ['te', 'test']
 
@@ -212,3 +215,9 @@ class TestTrie(object):
         assert set(self._trie.all_levenshtein_('acb', 2)) == set([
             ('abc', 2, '=D=I'), ('abd', 2, '=D=I'), ('abc', 2, '=XX'),
             ('abd', 2, '=XX'), ('abc', 2, '=I=D')])
+
+    def test_best_levenshtein_match(self):
+        assert self._trie.best_levenshtein('abd', 1) == 'abd'
+
+    def test_best_levenshtein_no_match(self):
+        assert self._trie.best_levenshtein('ab', 0) == None

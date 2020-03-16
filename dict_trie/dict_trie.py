@@ -252,7 +252,7 @@ class Trie(object):
 
         :returns str: Best match with {word}.
         """
-        if _find(self.root, word):
+        if self.get(word):
             return word
 
         for i in range(1, distance + 1):
@@ -260,7 +260,7 @@ class Trie(object):
             if result:
                 return result
 
-        return ''
+        return None
 
     def all_levenshtein_(self, word, distance):
         return map(
@@ -285,7 +285,7 @@ class Trie(object):
 
         :returns str: Best match with {word}.
         """
-        if _find(self.root, word):
+        if self.get(word):
             return word
 
         for i in range(1, distance + 1):
@@ -293,4 +293,4 @@ class Trie(object):
             if result:
                 return result
 
-        return ''
+        return None

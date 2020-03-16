@@ -1,14 +1,14 @@
 """dict-trie: Basic implementation of a trie.
 
 
-Copyright (c) 2017 Jeroen F.J. Laros <J.F.J.Laros@lumc.nl>
+Copyright (c) 2017-2020 Jeroen F.J. Laros <J.F.J.Laros@lumc.nl>
 
 Licensed under the MIT license, see the LICENSE file.
 """
 from .dict_trie import Trie
 
 
-__version_info__ = ('1', '0', '0')
+__version_info__ = ('1', '0', '1')
 
 __version__ = '.'.join(__version_info__)
 __author__ = 'Jeroen F.J. Laros'
