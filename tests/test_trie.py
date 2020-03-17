@@ -133,16 +133,19 @@ class TestTrie(object):
         assert not list(self._trie.all_hamming('xbx', 1))
 
     def test_hamming_0_no_prefix(self):
-        assert self._trie.hamming('ab', 0) == ''
+        assert self._trie.hamming('ab', 0) is None
 
     def test_hamming_0_match(self):
         assert self._trie.hamming('abc', 0) == 'abc'
+
+    def test_hamming_0_match_empty_word(self):
+        assert Trie(['']).hamming('', 0) == ''
 
     def test_hamming_0_match_sub(self):
         assert self._trie.hamming('te', 0) == 'te'
 
     def test_hamming_0_too_long(self):
-        assert self._trie.hamming('abcd', 0) == ''
+        assert self._trie.hamming('abcd', 0) is None
 
     def test_hamming_1_match(self):
         assert self._trie.hamming('abc', 1) in ['abc', 'abd']
@@ -163,10 +166,10 @@ class TestTrie(object):
         assert self._trie.hamming('abd', 1) in ['abc', 'abd']
 
     def test_hamming_1_no_prefix(self):
-        assert self._trie.hamming('ab', 1) == ''
+        assert self._trie.hamming('ab', 1) is None
 
     def test_hamming_1_too_long(self):
-        assert self._trie.hamming('abcd', 1) == ''
+        assert self._trie.hamming('abcd', 1) is None
 
     def test_hamming_1_match_sub_1(self):
         assert self._trie.hamming('tx', 1) == 'te'
@@ -175,7 +178,7 @@ class TestTrie(object):
         assert self._trie.hamming('xe', 1) == 'te'
 
     def test_hamming_1_mismatch(self):
-        assert self._trie.hamming('txxt', 1) == ''
+        assert self._trie.hamming('txxt', 1) is None
 
     def test_hamming_2_match(self):
         assert self._trie.hamming('txxt', 2) == 'test'
@@ -184,7 +187,19 @@ class TestTrie(object):
         assert self._trie.best_hamming('abd', 1) == 'abd'
 
     def test_best_hamming_no_match(self):
-        assert self._trie.best_hamming('ab', 0) == None
+        assert self._trie.best_hamming('ab', 0) is None
+
+    def test_levenshtein_0_match_empty_word(self):
+        assert Trie(['']).levenshtein('', 0) == ''
+
+    def test_levenshtein_0_no_match_empty_word(self):
+        assert Trie(['']).levenshtein('a', 0) is None
+
+    def test_levenshtein_1_match_empty_word(self):
+        assert Trie(['']).levenshtein('a', 1) == ''
+
+    def test_levenshtein_1_no_match_empty_word(self):
+        assert Trie(['']).levenshtein('ab', 1) is None
 
     def test_all_levenshtein_1_not_perfect(self):
         assert list(self._trie.all_levenshtein('tes', 1)) == ['te', 'test']
@@ -216,8 +231,14 @@ class TestTrie(object):
             ('abc', 2, '=D=I'), ('abd', 2, '=D=I'), ('abc', 2, '=XX'),
             ('abd', 2, '=XX'), ('abc', 2, '=I=D')])
 
+    def test_best_levenshtein_match_emty_word(self):
+        assert Trie(['']).best_levenshtein('a', 1) == ''
+
+    def test_best_levenshtein_no_match_emty_word(self):
+        assert Trie(['']).best_levenshtein('ab', 1) is None
+
     def test_best_levenshtein_match(self):
         assert self._trie.best_levenshtein('abd', 1) == 'abd'
 
     def test_best_levenshtein_no_match(self):
-        assert self._trie.best_levenshtein('ab', 0) == None
+        assert self._trie.best_levenshtein('ab', 0) is None

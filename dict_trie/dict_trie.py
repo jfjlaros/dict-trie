@@ -242,7 +242,7 @@ class Trie(object):
         try:
             return next(self.all_hamming(word, distance))
         except StopIteration:
-            return ''
+            return None
 
     def best_hamming(self, word, distance):
         """Find the best match with {word} in a trie.
@@ -257,7 +257,7 @@ class Trie(object):
 
         for i in range(1, distance + 1):
             result = self.hamming(word, i)
-            if result:
+            if result is not None:
                 return result
 
         return None
@@ -275,7 +275,7 @@ class Trie(object):
         try:
             return next(self.all_levenshtein(word, distance))
         except StopIteration:
-            return ''
+            return None
 
     def best_levenshtein(self, word, distance):
         """Find the best match with {word} in a trie.
@@ -290,7 +290,7 @@ class Trie(object):
 
         for i in range(1, distance + 1):
             result = self.levenshtein(word, i)
-            if result:
+            if result is not None:
                 return result
 
         return None
