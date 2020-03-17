@@ -120,7 +120,7 @@ def _hamming(path, node, word, distance, cigar):
     :arg str word: Query word.
     :arg int distance: Amount of allowed errors.
 
-    :returns iter: All word in a trie that have Hamming distance of at most
+    :returns iter: All words in a trie that have Hamming distance of at most
         {distance} to {word}.
     """
     if distance < 0:
@@ -154,7 +154,7 @@ def _levenshtein(path, node, word, distance, cigar):
     :arg str word: Query word.
     :arg int distance: Amount of allowed errors.
 
-    :returns iter: All word in a trie that have Hamming distance of at most
+    :returns iter: All words in a trie that have Hamming distance of at most
         {distance} to {word}.
     """
     if distance < 0:
