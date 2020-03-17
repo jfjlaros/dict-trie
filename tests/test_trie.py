@@ -1,10 +1,6 @@
-"""Tests for the trie library.
-"""
-#from __future__ import (
-#    absolute_import, division, print_function, unicode_literals)
-#from future.builtins import str, zip
-
+"""Tests for the trie library."""
 from dict_trie import Trie
+
 
 class TestTrie(object):
     def setup(self):
