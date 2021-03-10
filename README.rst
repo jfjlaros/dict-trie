@@ -3,8 +3,8 @@ Trie implementation using nested dictionaries
 
 .. image:: https://img.shields.io/github/last-commit/jfjlaros/dict-trie.svg
    :target: https://github.com/jfjlaros/dict-trie/graphs/commit-activity
-.. image:: https://travis-ci.org/jfjlaros/dict-trie.svg?branch=master
-   :target: https://travis-ci.org/jfjlaros/dict-trie
+.. image:: https://github.com/jfjlaros/dict-trie/actions/workflows/python-package.yml/badge.svg
+   :target: https://github.com/jfjlaros/dict-trie/actions/workflows/python-package.yml
 .. image:: https://readthedocs.org/projects/dict-trie/badge/?version=latest
    :target: https://dict-trie.readthedocs.io/en/latest
 .. image:: https://img.shields.io/github/release-date/jfjlaros/dict-trie.svg
