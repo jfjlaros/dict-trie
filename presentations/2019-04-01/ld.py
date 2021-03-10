@@ -7,7 +7,7 @@ def lev(a, b):
     if a[-1] != b[-1]:
         return min(
             lev(a[:-1], b),
-            lev(a, b[:-1]), 
+            lev(a, b[:-1]),
             lev(a[:-1], b[:-1])) + 1
 
     return lev(a[:-1], b[:-1])

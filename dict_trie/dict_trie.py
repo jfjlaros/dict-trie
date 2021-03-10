@@ -270,7 +270,7 @@ class Trie(object):
 
     def levenshtein(self: object, word: str, distance) -> str:
         try:
-            return next(self.all_levenshtein(word, distance: int))
+            return next(self.all_levenshtein(word, distance))
         except StopIteration:
             return None
 
