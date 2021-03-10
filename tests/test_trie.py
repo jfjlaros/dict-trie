@@ -2,7 +2,7 @@
 from dict_trie import Trie
 
 
-class TestTrie(object):
+class TestTrie(object) -> None:
     def setup(self: object) -> None:
         self._trie = Trie(['abc', 'abd', 'abd', 'test', 'te'])
 
