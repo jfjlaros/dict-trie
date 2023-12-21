@@ -3,7 +3,7 @@ from dict_trie import Trie
 
 
 class TestTrie(object):
-    def setup(self: object) -> None:
+    def setup_method(self: object) -> None:
         self._trie = Trie(['abc', 'abd', 'abd', 'test', 'te'])
 
     def test_empty(self: object) -> None:
@@ -238,3 +238,12 @@ class TestTrie(object):
 
     def test_best_levenshtein_no_match(self: object) -> None:
         assert self._trie.best_levenshtein('ab', 0) is None
+
+    def test_find_prefix_matches(self: object) -> None:
+        trie = Trie(['hello', 'hello Susan', 'howdy', 'goodbye'])
+        assert set(trie.find_prefix_matches('h')) == set(['hello', 'hello Susan', 'howdy'])
+        assert set(trie.find_prefix_matches('he')) == set(['hello', 'hello Susan'])
+        assert set(trie.find_prefix_matches('hello')) == set(['hello', 'hello Susan'])
+        assert set(trie.find_prefix_matches('hello ')) == set(['hello Susan'])
+        assert set(trie.find_prefix_matches('g')) == set(['goodbye'])
+        assert set(trie.find_prefix_matches('good')) == set(['goodbye'])
