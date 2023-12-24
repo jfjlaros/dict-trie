@@ -52,6 +52,22 @@ class TestTrie(object):
     def test_prefix_order(self: object) -> None:
         assert Trie(['test', 'te']).root == Trie(['te', 'test']).root
 
+    def test_match_prefix(self: object) -> None:
+        trie = Trie(['hello', 'hello Susan', 'howdy', 'goodbye'])
+        assert set(trie.match_prefix('h')) == set(['hello', 'hello Susan', 'howdy'])
+        assert set(trie.match_prefix('he')) == set(['hello', 'hello Susan'])
+        assert set(trie.match_prefix('hello ')) == set(['hello Susan'])
+        assert set(trie.match_prefix('g')) == set(['goodbye'])
+        assert set(trie.match_prefix('good')) == set(['goodbye'])
+
+    def test_match_prefix_empty(self: object) -> None:
+        trie = Trie(['abc', 'abd', 'def'])
+        assert set(trie.match_prefix('')) == set(trie)
+
+    def test_match_prefix_full(self: object) -> None:
+        trie = Trie(['abc', 'abd', 'def'])
+        assert set(trie.match_prefix('abc')) == set(['abc'])
+
     def test_add(self: object) -> None:
         self._trie.add('abx')
         assert 'abx' in self._trie
@@ -238,12 +254,3 @@ class TestTrie(object):
 
     def test_best_levenshtein_no_match(self: object) -> None:
         assert self._trie.best_levenshtein('ab', 0) is None
-
-    def test_find_prefix_matches(self: object) -> None:
-        trie = Trie(['hello', 'hello Susan', 'howdy', 'goodbye'])
-        assert set(trie.find_prefix_matches('h')) == set(['hello', 'hello Susan', 'howdy'])
-        assert set(trie.find_prefix_matches('he')) == set(['hello', 'hello Susan'])
-        assert set(trie.find_prefix_matches('hello')) == set(['hello', 'hello Susan'])
-        assert set(trie.find_prefix_matches('hello ')) == set(['hello Susan'])
-        assert set(trie.find_prefix_matches('g')) == set(['goodbye'])
-        assert set(trie.find_prefix_matches('good')) == set(['goodbye'])

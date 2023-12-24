@@ -1,20 +1,20 @@
 Tests
-============
+=====
 
 All unittests can be run locally with the command:
 
 ::
 
-    ./run_tests
+    python -m pytest
 
 A specific test can be run with:
 
 ::
 
-    ./run_tests <name>
+    python -m pytest <name>
 
 For example:
 
 ::
 
-    ./run_tests tests/test_trie.py::TestTrie::test_empty
+    python -m pytest tests/test_trie.py::TestTrie::test_empty
