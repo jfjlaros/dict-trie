@@ -8,5 +8,5 @@
 
    installation
    usage
-   tests
+   development
    credits

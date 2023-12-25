@@ -1,5 +1,20 @@
+Development
+===========
+
+Using a :ref:`virtual environment<source-install>` is recommended.
+
+Setup
+-----
+
+Install all dependencies required for testing.
+
+::
+
+    pip install -e .[test]
+
+
 Tests
-=====
+-----
 
 All unittests can be run locally with the command:
 
