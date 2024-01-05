@@ -223,6 +223,10 @@ class Trie(object):
     def has_prefix(self: object, word: str) -> bool:
         return _find(self.root, word) != {}
 
+    def match_prefix(self: object, prefix: str):
+        subnode = _find(self.root, prefix)
+        return _iterate(prefix, subnode, True)
+
     def fill(self: object, alphabet: tuple, length: int) -> None:
         _fill(self.root, alphabet, length)
 

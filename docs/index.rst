@@ -8,4 +8,5 @@
 
    installation
    usage
+   development
    credits

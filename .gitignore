@@ -5,3 +5,6 @@
 build/
 dist/
 dict_trie.egg-info/
+*.out
+*.geany
+.env
